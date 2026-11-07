@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>烦忧图鉴 · 大学心事档案馆</title>
+<style>
+  /* ===== 配色（取自参考图）=====
+     #FEFDF8 奶油白底
+     #FFECA3 浅黄
+     #FAAAAB 粉（分格条）
+     #F0973E 橙（色带）
+     #B36760 赭棕（文字）
+  */
+  :root {
+    --cream: #FEFDF8;
+    --yellow: #FFECA3;
+    --pink: #FAAAAB;
+    --orange: #F0973E;
+    --brown: #B36760;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--cream);
+    color: #5A3A32;
+    line-height: 1.6;
+  }
+
+  /* ===== 顶部色带（1.5cm ≈ 57px）===== */
+  .topbar {
+    height: 57px;
+    background: var(--orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 3px;
+  }
+  .topbar-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #FFFDF6;
+    letter-spacing: 3px;
+    transition: opacity 0.45s ease;
+  }
+
+  /* ===== 轮播首屏 ===== */
+  .carousel {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--yellow);
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+    background: var(--yellow);
+  }
+  .slide.active { opacity: 1; pointer-events: auto; }
+  .bg-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+  }
+  .slide-one {
+    background: linear-gradient(120deg, var(--yellow) 0%, #FFE9A8 55%, var(--orange) 130%);
+  }
+  .slide-blank { background: var(--cream); }
+
+  .slide-inner {
+    display: flex;
+    align-items: center;
+    gap: 44px;
+    max-width: 1120px;
+    width: 100%;
+  }
+  .hero-fox {
+    flex-shrink: 0;
+    width: 340px;
+    height: auto;
+    filter: drop-shadow(0 10px 24px rgba(179,103,96,0.18));
+  }
+  .hero-text { flex: 1; min-width: 0; }
+  .hero-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .hero-title {
+    font-size: 58px;
+    font-weight: 800;
+    color: var(--brown);
+    letter-spacing: 2px;
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+  .hero-subtitle {
+    font-size: 18px;
+    color: var(--brown);
+    opacity: 0.75;
+    font-weight: 400;
+    letter-spacing: 1px;
+  }
+  .hero-desc {
+    font-size: 19px;
+    color: #7A4A40;
+    margin-top: 22px;
+    max-width: 540px;
+    line-height: 1.9;
+  }
+
+  /* 箭头 */
+  .arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(179,103,96,0.85);
+    color: #FFF9E8;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+    z-index: 10;
+    font-family: inherit;
+  }
+  .arrow:hover { background: var(--brown); transform: translateY(-50%) scale(1.08); }
+  .arrow.prev { left: 24px; }
+  .arrow.next { right: 24px; }
+
+  /* 圆点 */
+  .dots {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+  }
+  .dot {
+    width: 11px; height: 11px;
+    border-radius: 50%;
+    background: rgba(179,103,96,0.35);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .dot.active { background: var(--brown); transform: scale(1.25); }
+
+  /* ===== 分格标签条（距轮播约1cm，高2cm ≈ 76px）===== */
+  .tabs {
+    margin: 38px 40px 44px;
+    height: 76px;
+    background: var(--pink);
+    border-radius: 12px;
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(250,170,171,0.35);
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #7A3B3E;
+    font-size: 17px;
+  }
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border-right: 1.5px solid rgba(255,255,255,0.55);
+    transition: background 0.25s, color 0.25s;
+    padding: 0 8px;
+    user-select: none;
+    line-height: 1.45;
+  }
+  .tab:last-child { border-right: none; }
+  .tab:hover { background: rgba(255,255,255,0.35); }
+  .tab.active {
+    background: var(--orange);
+    color: #FFFDF6;
+  }
+  .tab .tab-sub {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 400;
+    opacity: 0.85;
+    letter-spacing: 0;
+  }
+
+  /* ===== 科普板块 ===== */
+  .board {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .section {
+    display: none;
+    background: var(--cream);
+    border-radius: 20px;
+    padding: 44px 48px;
+    border: 1.5px solid rgba(240,151,62,0.22);
+    box-shadow: 0 6px 24px rgba(240,151,62,0.08);
+  }
+  .section.show { display: block; animation: fadeIn 0.45s ease; }
+  #section-compare {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+  .compare-intro {
+    max-width: 960px;
+    margin: 10px auto 18px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 2;
+    color: #8A534A;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 2px dashed var(--yellow);
+  }
+  .section-icon {
+    width: 52px; height: 52px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .section-icon img {
+    width: 52px; height: 52px;
+    object-fit: contain;
+  }
+  .section-title { font-size: 26px; font-weight: 700; color: var(--brown); }
+  .section-sub { font-size: 14px; color: #9A6A62; }
+  .section-body p {
+    font-size: 16px;
+    color: #5A3A32;
+    margin-bottom: 16px;
+    line-height: 1.9;
+  }
+  .section-body ul { padding-left: 24px; margin-bottom: 16px; }
+  .section-body li {
+    font-size: 15px;
+    color: #5A3A32;
+    margin-bottom: 10px;
+    line-height: 1.85;
+  }
+  .section-body strong { color: var(--brown); }
+  .tip-box {
+    background: var(--yellow);
+    border-left: 5px solid var(--orange);
+    border-radius: 10px;
+    padding: 18px 24px;
+    margin-top: 24px;
+    font-size: 15px;
+    color: #7A4A40;
+  }
+
+  /* ===== 止耗抽屉：故事背景式长排版 ===== */
+  #section-stop {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+  .stop-head {
+    text-align: center;
+    padding: 18px 0 6px;
+  }
+  .stop-title {
+    font-size: 34px;
+    font-weight: 800;
+    color: var(--brown);
+    letter-spacing: 6px;
+    text-indent: 6px;
+  }
+  .stop-sub {
+    margin-top: 14px;
+    font-size: 13.5px;
+    color: #9A6A62;
+    letter-spacing: 1.5px;
+  }
+  .stop-intro {
+    max-width: 660px;
+    margin: 26px auto 0;
+    text-align: center;
+    font-size: 15px;
+    line-height: 2.05;
+    color: #6B4740;
+  }
+  .stop-list { max-width: 960px; margin: 8px auto 0; }
+  .stop-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 330px;
+    gap: 56px;
+    align-items: center;
+    padding: 46px 0;
+    border-bottom: 1px solid rgba(179,103,96,0.13);
+  }
+  .stop-row.alt { grid-template-columns: 330px minmax(0, 1fr); }
+  .stop-row.alt .stop-fig { order: -1; }
+  .stop-row:first-child { padding-top: 26px; }
+  .stop-text { min-width: 0; }
+  .stop-h {
+    font-size: 19px;
+    font-weight: 700;
+    color: #5C8446;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+  .stop-lead {
+    font-size: 14px;
+    line-height: 1.9;
+    color: #8B6A60;
+    margin-bottom: 18px;
+  }
+  .stop-m { display: flex; gap: 12px; margin-top: 15px; }
+  .stop-n {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #EFF4E4;
+    color: #5C8446;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: Georgia, "Times New Roman", serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 3px;
+  }
+  .stop-m h4 {
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--brown);
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+  }
+  .stop-m p {
+    font-size: 14.5px;
+    line-height: 1.95;
+    color: #5A3A32;
+    text-align: justify;
+  }
+  .stop-fig { margin: 0; position: relative; }
+  .stop-fig img {
+    width: 100%;
+    height: 360px;
+    object-fit: cover;
+    display: block;
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1px solid rgba(179,103,96,0.13);
+  }
+  .stop-fig .sf-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(255,253,248,0.88);
+    border: none;
+    font-size: 18px;
+    color: #7A3B3E;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 2;
+  }
+  .stop-fig .sf-prev { left: 10px; }
+  .stop-fig .sf-next { right: 10px; }
+  .stop-end {
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 54px 0 50px;
+  }
+  .stop-end p {
+    font-size: 15px;
+    line-height: 2.1;
+    color: #6B4740;
+    text-align: justify;
+    margin-bottom: 14px;
+  }
+  .stop-end .sign {
+    font-size: 13px;
+    color: #A07C72;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-top: 20px;
+  }
+  .stop-band {
+    margin: 0 -40px;
+    background: #2E2A26;
+    padding: 26px 20px;
+    text-align: center;
+  }
+  .stop-band span {
+    font-size: 12.5px;
+    color: #CFC7BA;
+    letter-spacing: 1.2px;
+  }
+  @media (max-width: 980px) {
+    .stop-row, .stop-row.alt {
+      grid-template-columns: 1fr;
+      gap: 26px;
+      padding: 34px 0;
+    }
+    .stop-row.alt .stop-fig { order: 0; }
+    .stop-fig img { height: 300px; }
+    .stop-title { font-size: 28px; letter-spacing: 4px; text-indent: 4px; }
+  }
+  @media (max-width: 900px) {
+    .stop-band { margin: 0 -20px; }
+  }
+  @media (max-width: 768px) {
+    .stop-fig img { height: 246px; }
+    .stop-intro { font-size: 14px; line-height: 1.95; }
+    .stop-m p { font-size: 13.5px; }
+    .stop-end { padding: 40px 0 34px; }
+    .stop-end p { font-size: 14px; }
+  }
+
+  /* ===== 心灵处方架：左封面右书讯 ===== */
+  .books-intro {
+    text-align: center;
+    color: #9A6A62 !important;
+    margin-bottom: 22px !important;
+  }
+  .book-book {
+    position: relative;
+    max-width: 880px;
+    margin: 0 auto;
+    background: #FFFDF7;
+    border: 1.5px solid rgba(240,151,62,0.2);
+    border-radius: 18px;
+    padding: 30px 34px 76px;
+    box-shadow: 0 4px 16px rgba(240,151,62,0.06);
+  }
+  .book-page { display: none; }
+  .book-page.show { display: block; animation: fadeIn 0.4s ease; }
+  .book-cat {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .book-cat span {
+    background: var(--yellow);
+    color: #7A4A40;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 9px 34px;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(240,151,62,0.15);
+  }
+  .book-list {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  .book-item {
+    display: flex;
+    gap: 26px;
+    align-items: flex-start;
+    padding-bottom: 26px;
+    border-bottom: 1px dashed rgba(240,151,62,0.22);
+  }
+  .book-item:last-child { padding-bottom: 0; border-bottom: none; }
+  .book-cover {
+    flex: 0 0 auto;
+    width: 96px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 6px 16px rgba(179,103,96,0.22), 0 0 0 1px rgba(179,103,96,0.1);
+  }
+  .book-cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .book-info { flex: 1; min-width: 0; }
+  .book-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--brown);
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .book-author {
+    font-size: 13.5px;
+    color: #9A6A62;
+    margin-bottom: 5px;
+  }
+  .book-stars {
+    font-size: 13.5px;
+    color: #9A6A62;
+    margin-bottom: 9px;
+  }
+  .book-stars span {
+    color: var(--orange);
+    font-size: 15px;
+    letter-spacing: 2px;
+  }
+  .book-desc {
+    font-size: 14px;
+    line-height: 1.95;
+    color: #5A3A32;
+    text-align: justify;
+  }
+  .book-pager {
+    position: absolute;
+    right: 26px;
+    bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pg-arrow, .pg-num {
+    width: 27px;
+    height: 27px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(240,151,62,0.45);
+    background: #fff;
+    color: #9A6A62;
+    font-size: 12.5px;
+    font-family: inherit;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+  }
+  .pg-arrow {
+    background: var(--yellow);
+    border-color: rgba(240,151,62,0.5);
+    font-size: 15px;
+    color: #7A4A40;
+  }
+  .pg-arrow:hover, .pg-num:hover { background: #FFE9E1; }
+  .pg-num.active {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: #fff;
+    font-weight: 700;
+  }
+
+  /* ===== 心事卷宗：卡片式布局 ===== */
+  .archive-intro {
+    font-size: 15px;
+    color: #7A4A40;
+    margin-bottom: 26px;
+  }
+  .case-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+  .case-card {
+    background: #fff;
+    border: 1px solid rgba(240,151,62,0.28);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 3px 12px rgba(240,151,62,0.07);
+    transition: transform 0.28s, box-shadow 0.28s;
+  }
+  .case-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 22px rgba(240,151,62,0.18);
+  }
+  .case-cover {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: #FFF7E4;
+  }
+  .case-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 18%;
+    display: block;
+    transition: transform 0.45s;
+  }
+  .case-card:hover .case-cover img { transform: scale(1.05); }
+  .case-body {
+    padding: 16px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .case-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--brown);
+    line-height: 1.4;
+  }
+  .case-sub {
+    font-size: 13px;
+    color: #9A6A62;
+    margin-top: 4px;
+  }
+  .case-hook {
+    font-size: 13px;
+    color: #7A4A40;
+    margin: 10px 0 16px;
+    line-height: 1.7;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .case-btn {
+    margin-top: auto;
+    align-self: flex-start;
+    background: var(--orange);
+    color: #FFFDF6;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 24px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .case-btn:hover { background: #D97F2F; transform: translateX(2px); }
+  .case-card.empty { border-style: dashed; border-color: rgba(179,103,96,0.3); }
+  .case-card.empty .case-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #C1A9A3;
+    font-size: 14px;
+    background: #FBF3E6;
+  }
+  .case-card.empty .case-btn {
+    background: #EFE3D8;
+    color: #B8A088;
+    cursor: default;
+  }
+
+  /* ===== 详情弹窗 ===== */
+  .case-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(58,36,30,0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 1000;
+  }
+  .case-modal.show { display: flex; }
+  .modal-box {
+    background: var(--cream);
+    border-radius: 18px;
+    width: 100%;
+    max-width: 1036px;
+    height: 562px;
+    max-height: 88vh;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    display: flex;
+  }
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,253,246,0.95);
+    color: var(--brown);
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 5;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  /* 明信片：左图右文，统一尺寸 */
+  .modal-img-wrap {
+    flex: 0 0 48%;
+    background: #FFF7E4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 18px 20px 12px;
+    overflow: hidden;
+    border-right: 2px dashed rgba(240,151,62,0.35);
+  }
+  .modal-img {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-height: none;
+    object-fit: contain;
+    display: block;
+    border-radius: 8px;
+  }
+  .modal-pager {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+  }
+  .pager-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(179,103,96,0.3);
+    background: rgba(255,253,246,0.95);
+    color: var(--brown);
+    font-size: 17px;
+    line-height: 1;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s, border-color 0.2s, opacity 0.2s;
+  }
+  .pager-btn:hover:not(:disabled) {
+    background: var(--orange);
+    color: #FFFDF6;
+    border-color: var(--orange);
+  }
+  .pager-btn:disabled { opacity: 0.32; cursor: default; }
+  .modal-count {
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: #8A534A;
+    font-family: Georgia, "Times New Roman", serif;
+    min-width: 52px;
+    text-align: center;
+  }
+  .modal-side {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+    padding: 14px 14px;
+  }
+  .case-frame {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 100% 100%;
+    padding: 62px 62px 58px 62px;
+    box-sizing: border-box;
+  }
+  .modal-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--brown);
+    line-height: 1.35;
+  }
+  .modal-sub {
+    font-size: 15px;
+    color: #9A6A62;
+    margin-top: 8px;
+  }
+  .frame-h3 {
+    font-size: 18.5px;
+    font-weight: 800;
+    color: var(--brown);
+    margin: 20px 0 8px;
+    letter-spacing: 1px;
+  }
+  .case-frame ul { padding-left: 20px; margin: 8px 0 0; }
+  .case-frame li {
+    font-size: 16px;
+    color: #5A3A32;
+    line-height: 1.8;
+    margin-bottom: 2px;
+  }
+  .modal-quote {
+    margin-top: 16px;
+    font-size: 16.5px;
+    color: #8A534A;
+    font-weight: 600;
+    line-height: 1.8;
+  }
+
+  /* ===== 底部色带（1.5cm ≈ 57px）===== */
+  .bottombar {
+    margin-top: 70px;
+    height: 57px;
+    background: var(--orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .bottombar-text {
+    font-size: 15px;
+    color: #FFFDF6;
+    letter-spacing: 1.5px;
+  }
+
+  /* 中等屏宽：明信片变窄，收紧字号与内边距，保证文字仍在框内 */
+  @media (max-width: 1140px) and (min-width: 981px) {
+    .case-frame { padding: 46px 48px 44px 48px; }
+    .modal-title { font-size: 22px; }
+    .modal-sub { font-size: 14px; }
+    .frame-h3 { font-size: 17px; margin: 16px 0 6px; }
+    .case-frame li { font-size: 15px; line-height: 1.7; }
+    .modal-quote { font-size: 15px; margin-top: 12px; }
+  }
+  /* 窄屏（平板竖屏）：明信片上下排布，避免右栏被压得过窄 */
+  @media (max-width: 980px) and (min-width: 769px) {
+    .modal-box { flex-direction: column; height: auto; max-height: 92vh; }
+    .modal-img-wrap {
+      flex: none;
+      height: 34vh;
+      padding: 12px;
+      border-right: none;
+      border-bottom: 2px dashed rgba(240,151,62,0.35);
+    }
+    .modal-side { padding: 10px 12px 14px; }
+    .case-frame { padding: 40px 44px 38px 44px; min-height: 0; }
+    .modal-title { font-size: 22px; }
+    .modal-sub { font-size: 14px; }
+    .frame-h3 { font-size: 17px; margin: 16px 0 6px; }
+    .case-frame li { font-size: 15px; line-height: 1.7; }
+    .modal-quote { font-size: 15px; margin-top: 12px; }
+  }
+
+  @media (max-width: 900px) {
+    .tabs { margin: 30px 24px 36px; }
+    .tab { font-size: 15px; }
+    .board { padding: 0 20px; }
+    .section { padding: 30px 22px; }
+    .case-grid { grid-template-columns: repeat(2, 1fr); }
+    .book-book { padding: 24px 22px 70px; }
+    .book-cover { width: 82px; }
+    .book-item { gap: 18px; }
+    .book-name { font-size: 17px; }
+    .book-desc { font-size: 13.5px; line-height: 1.9; }
+  }
+  @media (max-width: 768px) {
+    .topbar { height: 57px; }
+    .topbar-text { font-size: 14px; letter-spacing: 1px; text-align: center; padding: 0 12px; }
+    .slide { padding: 0; display: block; }
+    .slide-inner { flex-direction: column; text-align: center; gap: 24px; }
+    .hero-fox { width: 230px; }
+    .hero-title { font-size: 34px; white-space: normal; }
+    .hero-subtitle { font-size: 15px; }
+    .hero-desc { font-size: 16px; margin: 16px auto 0; }
+    .arrow { width: 38px; height: 38px; font-size: 16px; }
+    .arrow.prev { left: 8px; }
+    .arrow.next { right: 8px; }
+    .book-book { padding: 20px 16px 66px; }
+    .book-cat span { font-size: 15px; padding: 8px 22px; letter-spacing: 1px; }
+    .book-item { gap: 14px; }
+    .book-cover { width: 68px; }
+    .book-name { font-size: 15.5px; }
+    .book-author, .book-stars { font-size: 12.5px; }
+    .book-stars span { font-size: 13.5px; letter-spacing: 1px; }
+    .book-desc { font-size: 13px; line-height: 1.85; }
+    .book-pager { right: 14px; bottom: 14px; gap: 4px; }
+    .pg-arrow, .pg-num { width: 25px; height: 25px; }
+    .tabs {
+      margin: 22px 12px 28px;
+      height: auto;
+      flex-wrap: wrap;
+      border-radius: 10px;
+    }
+    .tab {
+      flex: 1 1 50%;
+      min-height: 62px;
+      font-size: 13px;
+      border-bottom: 1.5px solid rgba(255,255,255,0.55);
+    }
+    .tab:nth-child(2) { border-right: none; }
+    .tab:nth-child(3), .tab:nth-child(4) { border-bottom: none; }
+    .bottombar { height: 57px; }
+    .bottombar-text { font-size: 12px; letter-spacing: 0; padding: 0 12px; text-align: center; }
+    .case-grid { grid-template-columns: 1fr; }
+    .case-modal { padding: 12px; }
+    .modal-box { flex-direction: column; height: auto; max-height: 92vh; }
+    .modal-img-wrap {
+      flex: none;
+      height: 36vh;
+      padding: 12px;
+      border-right: none;
+      border-bottom: 2px dashed rgba(240,151,62,0.35);
+    }
+    .modal-side { padding: 10px 10px 14px; }
+    .case-frame { padding: 34px 38px 30px 32px; }
+    .modal-title { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部色带（治愈语 4 秒轮换）===== -->
+<header class="topbar">
+  <span class="topbar-text" id="topbarText">你不必成为别人眼里的满分，只要成为自己心里的完整。</span>
+</header>
+
+<!-- ===== 轮播首屏（3 张背景图）===== -->
+<section class="carousel" id="carousel">
+  <div class="slide active">
+    <img class="bg-img" src="背景1.png" alt="背景图1">
+  </div>
+  <div class="slide">
+    <img class="bg-img" src="背景2.png" alt="背景图2">
+  </div>
+  <div class="slide">
+    <img class="bg-img" src="背景3.png" alt="背景图3">
+  </div>
+
+  <button class="arrow prev" onclick="goSlide(-1)" aria-label="上一张">‹</button>
+  <button class="arrow next" onclick="goSlide(1)" aria-label="下一张">›</button>
+
+  <div class="dots" id="dots">
+    <span class="dot active" onclick="setSlide(0)"></span>
+    <span class="dot" onclick="setSlide(1)"></span>
+    <span class="dot" onclick="setSlide(2)"></span>
+  </div>
+</section>
+
+<!-- ===== 四格标签条 ===== -->
+<div class="tabs">
+  <div class="tab active" onclick="showSection('section-archive', this)">心事卷宗｜大学生烦恼档案</div>
+  <div class="tab" onclick="showSection('section-stop', this)">止耗抽屉｜焦虑内耗急救指南</div>
+  <div class="tab" onclick="showSection('section-books', this)">心灵处方架｜治愈书单借阅处</div>
+  <div class="tab" onclick="showSection('section-compare', this)">比较放映厅｜同辈比较是压力还是动力？</div>
+</div>
+
+<!-- ===== 科普内容 ===== -->
+<div class="board">
+
+  <section class="section show" id="section-archive">
+    <div class="section-header">
+      <div class="section-icon"><img src="assets/tabs/icon_cases.png" alt="心事卷宗"></div>
+      <div>
+        <div class="section-title">心事卷宗</div>
+        <div class="section-sub">大学生烦恼档案 · 你不是一个人在烦</div>
+      </div>
+    </div>
+    <p class="archive-intro">15 份心事卷宗，点「查看」打开一份，看看里面写着谁的故事。</p>
+    <div class="case-grid" id="caseGrid"></div>
+  </section>
+
+  <section class="section" id="section-stop">
+    <div class="section-header">
+      <div class="section-icon"><img src="assets/tabs/icon_stop.png" alt="止耗抽屉"></div>
+      <div>
+        <div class="section-title">止耗抽屉</div>
+        <div class="section-sub">12 个焦虑急救法，先把最难的这几分钟稳住</div>
+      </div>
+    </div>
+    <p class="stop-intro">内耗像手机后台开了 50 个 App，表面没在用，电却掉得飞快。<br>这 12 个动作都很小：不需要场地，不需要别人配合，也不用先「说服自己」。</p>
+
+    <div class="stop-list">
+
+      <!-- 01 -->
+      <div class="stop-row">
+        <div class="stop-text">
+          <h3 class="stop-h">一、人前可用：不用离场，也能把自己拉回来</h3>
+          <p class="stop-lead">开会、社交、赶路时突然开始紧张、内耗、想太多——这两个动作幅度很小，不必离席，也不必解释。</p>
+          <div class="stop-m">
+            <span class="stop-n">01</span>
+            <div>
+              <h4>虎口轻按法</h4>
+              <p>用拇指按住虎口位置，轻轻用力，保持 3–5 秒再松开，重复 2–3 次。不用按到疼，有一点清晰的触感就可以。重点不是「忍住」，而是给身体一个明确的感受——当脑子一直在想后果、想「万一怎么办」时，触感能先把你带回当下。</p>
+            </div>
+          </div>
+          <div class="stop-m">
+            <span class="stop-n">02</span>
+            <div>
+              <h4>专属暂停手势</h4>
+              <p>给自己设计一个很小的动作：轻捏指腹、转一下戒指、按一下笔帽、摸一下手链都可以。一发现自己又开始反复想，就重复这个动作。它像给大脑一个温和的提醒：先停一下，别继续往下卷。</p>
+            </div>
+          </div>
+        </div>
+        <figure class="stop-fig" data-imgs="g01.jpg,g02.jpg" data-idx="0"><img class="sf-img" src="assets/stop/g01.jpg" alt="人前可用的小动作"><button class="sf-btn sf-prev" onclick="sfSlide(this,-1)">‹</button><button class="sf-btn sf-next" onclick="sfSlide(this,1)">›</button></figure>
+      </div>
+
+      <!-- 02 -->
+      <div class="stop-row alt">
+        <div class="stop-text">
+          <h3 class="stop-h">二、把注意力从脑子里挪到眼前</h3>
+          <p class="stop-lead">焦虑很强的时候，人容易被脑内画面带走。让眼睛和手指去做一件具体、机械的小事，比说服自己更有效。</p>
+          <div class="stop-m">
+            <span class="stop-n">03</span>
+            <div>
+              <h4>眼前实物数数</h4>
+              <p>把目光放到周围，快速数东西：1 支笔、2 个杯子、3 盏灯、4 把椅子……不用数得特别准。重点是让脑子去做一个简单、具体、机械的任务。当注意力被「数东西」占住，乱想会比较容易降下来。</p>
+            </div>
+          </div>
+          <div class="stop-m">
+            <span class="stop-n">04</span>
+            <div>
+              <h4>摸一个具体物品</h4>
+              <p>摸一下杯壁、衣角、手机壳、钥匙、桌面边缘，然后在心里默念它的触感：冷的、硬的、粗糙的、光滑的、有棱角的。不用说服自己，只要先感受到「我现在在这里」。</p>
+            </div>
+          </div>
+        </div>
+        <figure class="stop-fig" data-imgs="g03.jpg,g04.jpg" data-idx="0"><img class="sf-img" src="assets/stop/g03.jpg" alt="摸一件真实的织物"><button class="sf-btn sf-prev" onclick="sfSlide(this,-1)">‹</button><button class="sf-btn sf-next" onclick="sfSlide(this,1)">›</button></figure>
+      </div>
+
+      <!-- 03 -->
+      <div class="stop-row">
+        <div class="stop-text">
+          <h3 class="stop-h">三、居家可用：让身体先松下来</h3>
+          <p class="stop-lead">在家坐立不安、浑身发紧、心里烦躁的时候，先处理身体——身体松一点，脑子才更容易跟上。</p>
+          <div class="stop-m">
+            <span class="stop-n">05</span>
+            <div>
+              <h4>全身紧松练习</h4>
+              <p>站着或坐直都可以。双手握拳，肩膀微微收紧，腹部轻轻用力，双腿绷住，保持 5–8 秒，然后慢慢松开、让身体放软，重复 2 组。焦虑不只在脑子里，也藏在肩膀、手臂、腰背和腿里。先收紧，再放松，身体更容易收到「可以松一点了」的信号。</p>
+            </div>
+          </div>
+          <div class="stop-m">
+            <span class="stop-n">06</span>
+            <div>
+              <h4>凉水洗脸 / 握凉杯</h4>
+              <p>用常温偏凉的水洗一下脸，或者用手握住凉一点的杯子、湿毛巾。不用冰水，也不用追求刺激感。凉意会给感官一个新的信号，让注意力从反复思考里移开一点。</p>
+            </div>
+          </div>
+        </div>
+        <figure class="stop-fig" data-imgs="g05.jpg,g06.jpg" data-idx="0"><img class="sf-img" src="assets/stop/g05.jpg" alt="居家可用的方法"><button class="sf-btn sf-prev" onclick="sfSlide(this,-1)">‹</button><button class="sf-btn sf-next" onclick="sfSlide(this,1)">›</button></figure>
+      </div>
+
+      <!-- 04 -->
+      <div class="stop-row alt">
+        <div class="stop-text">
+          <h3 class="stop-h">四、把乱糟糟的东西放到外面</h3>
+          <p class="stop-lead">有些情绪不是马上能想明白的。先把它从脑子里倒出来，或者让眼前的一小块地方变得有序，人就会轻一点。</p>
+          <div class="stop-m">
+            <span class="stop-n">07</span>
+            <div>
+              <h4>随手写出来</h4>
+              <p>拿一张纸，把脑子里的东西随便写下来。不用讲逻辑、排版，也不用写得漂亮，想到什么写什么，也可以画圈、画线、重复写一个字。写完可以撕掉，也可以揉成团丢掉。</p>
+            </div>
+          </div>
+          <div class="stop-m">
+            <span class="stop-n">08</span>
+            <div>
+              <h4>快速整理一个小角落</h4>
+              <p>只选一个很小的地方：桌面、抽屉、包里、床头柜、口袋。给自己 3 分钟，只动手，不纠结，不追求完美。焦虑很强时，人会觉得什么都乱、什么都不受控；做一个很小、看得见结果的动作，会帮你重新找回一点掌控感。</p>
+            </div>
+          </div>
+        </div>
+        <figure class="stop-fig" data-imgs="g07.jpg,g08.jpg" data-idx="0"><img class="sf-img" src="assets/stop/g07.jpg" alt="把情绪写在纸上"><button class="sf-btn sf-prev" onclick="sfSlide(this,-1)">‹</button><button class="sf-btn sf-next" onclick="sfSlide(this,1)">›</button></figure>
+      </div>
+
+      <!-- 05 -->
+      <div class="stop-row">
+        <div class="stop-text">
+          <h3 class="stop-h">五、换个位置，换一种支撑</h3>
+          <p class="stop-lead">很多情绪会和眼前的空间、物品绑在一起。挪两步、赤脚站一会儿，就是给自己一个新的开始点。</p>
+          <div class="stop-m">
+            <span class="stop-n">09</span>
+            <div>
+              <h4>换一个位置</h4>
+              <p>发现自己开始陷进情绪里，就换个地方：沙发换椅子，卧室换阳台，坐着改成站着，哪怕只是往旁边挪两步。也可以把手机倒扣、电脑合上、文件先翻过去。</p>
+            </div>
+          </div>
+          <div class="stop-m">
+            <span class="stop-n">10</span>
+            <div>
+              <h4>光脚踩地</h4>
+              <p>在安全、干净的地方脱掉鞋子，双脚踩在地板上，脚趾轻轻抓地，感受脚底和地面的接触，保持 20–30 秒。适合心神很飘、坐不住、脑子很乱的时候。当脚底有了真实的支撑感，人会比较容易从「悬着」的状态里回来。</p>
+            </div>
+          </div>
+        </div>
+        <figure class="stop-fig" data-imgs="g09.jpg,g10.jpg" data-idx="0"><img class="sf-img" src="assets/stop/g09.jpg" alt="换一个位置"><button class="sf-btn sf-prev" onclick="sfSlide(this,-1)">‹</button><button class="sf-btn sf-next" onclick="sfSlide(this,1)">›</button></figure>
+      </div>
+
+      <!-- 06 -->
+      <div class="stop-row alt">
+        <div class="stop-text">
+          <h3 class="stop-h">六、把节奏放慢，让身体动起来</h3>
+          <p class="stop-lead">不用憋气，也不用强迫自己平静。只是把呼气拉长一点，或者让身体动一动。</p>
+          <div class="stop-m">
+            <span class="stop-n">11</span>
+            <div>
+              <h4>延长呼气法</h4>
+              <p>吸气 4 秒，慢慢呼气 6–8 秒，重复 3 轮。重点不是憋气，也不是强迫自己平静，只是把呼气拉长一点，让身体节奏慢下来。如果做的时候不舒服，就立刻停下来，换成普通呼吸。</p>
+            </div>
+          </div>
+          <div class="stop-m">
+            <span class="stop-n">12</span>
+            <div>
+              <h4>短时轻活动</h4>
+              <p>原地走一走、轻轻跺脚、伸展手臂、绕房间走两圈，30–60 秒就可以。焦虑感上来时，身体常常也会很紧；让身体动一动，比一直坐着硬扛更容易松开一点。</p>
+            </div>
+          </div>
+        </div>
+        <figure class="stop-fig" data-imgs="g11.jpg,g12.jpg" data-idx="0"><img class="sf-img" src="assets/stop/g11.jpg" alt="给自己一点鼓励"><button class="sf-btn sf-prev" onclick="sfSlide(this,-1)">‹</button><button class="sf-btn sf-next" onclick="sfSlide(this,1)">›</button></figure>
+      </div>
+
+    </div>
+
+    <div class="stop-end">
+      <p>这些方法不是让你「马上变好」，也不是否定你的情绪。它们只是帮你在焦虑感最强的那几分钟里，先从里面抽离一点点——能先稳住那几分钟，就已经很不容易了。</p>
+      <p>如果焦虑长期影响睡眠、工作、学习和日常生活，建议及时寻求专业支持。</p>
+      <div class="sign">小狐说：停止内耗，不是变优秀的开始，而是好好生活的开始。</div>
+    </div>
+
+    <div class="stop-band">
+      <span>止耗抽屉 · 12 个焦虑急救法　|　内容来自公开心理自助资料，不能替代专业治疗</span>
+    </div>
+  </section>
+
+  <section class="section" id="section-books">
+    <div class="section-header">
+      <div class="section-icon" style="width:71px;height:71px;"><img src="assets/tabs/icon_books.png" alt="心灵处方架" style="width:71px;height:71px;"></div>
+      <div>
+        <div class="section-title">心灵处方架</div>
+        <div class="section-sub">治愈书单借阅处 · 给情绪开一剂温柔的药</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <p class="books-intro">每本书都是一张心灵处方。按分类翻页，从最贴近你的那一类里，取一剂温柔的药。</p>
+      <div class="book-book">
+        <div class="book-pages" id="bookPages"></div>
+        <div class="book-pager" id="bookPager"></div>
+      </div>
+      <div class="tip-box">小狐说：读书不是为了立刻变好，而是让你知道——原来有人和我一样，并且走出来了。</div>
+    </div>
+  </section>
+
+<script>
+/* ===== 心灵处方架：五类书单分页 ===== */
+var BOOKS = [
+  {
+    cat: '一、情绪自治类',
+    items: [
+      { n: '当下的力量', a: 'Eckhart Tolle', s: 5, img: 'assets/books/dangxia.jpg',
+        d: '一切都是在当下发生的，而过去和未来只是一个无意义的时间幻象。通过向当下臣服，我们才能找到力量的源泉，发现平和与宁静的入口。' },
+      { n: '蛤蟆先生去看心理医生', a: 'Robert de Board', s: 5, img: 'assets/books/hama.jpg',
+        d: '蛤蟆先生一向爱笑爱闹，如今却一个人躲在屋里，连起床梳洗的力气都没有。朋友们非常担心他，在苍鹭的带领下，勇敢地探索了自己的内心世界，也逐渐找回了信心与希望。' },
+      { n: '不原谅也没关系', a: 'Pete Walker', s: 5, img: 'assets/books/buyuanliang.jpg',
+        d: '所有人都告诉我们要坚强，但作者告诉我们要哭泣；所有人都告诉我们要原谅世界，但作者告诉我们要原谅自己。' }
+    ]
+  },
+  {
+    cat: '一、情绪自治类',
+    items: [
+      { n: '感谢自己的不完美', a: '武志红', s: 4, img: 'assets/books/ganxie.jpg',
+        d: '我们一直以为一些负面情绪阻碍了我们成长，努力去避免和克服它们，但这些情绪是我们的朋友，我们应该接纳它们，体验更多生命的无限精彩。' },
+      { n: '高敏感是种天赋', a: 'Ilse Sand', s: 4, img: 'assets/books/gaomin.jpg',
+        d: '“高度敏感型人拥有发达的神经系统，可以感知到事物细微的差别，并对信息进行更深入的加工，他们拥有活跃的想象力和丰富的内心世界。”' },
+      { n: '安静的力量', a: 'Pico Iyer', s: 4, img: 'assets/books/anjing.jpg',
+        d: '通过安静，我们会觉得“整个世界都被照亮”，安静很简单，我们每个人都可以做到。我们每个人都可以学会安静，达到内心的平静。' }
+    ]
+  },
+  {
+    cat: '二、认知提升类',
+    items: [
+      { n: '也许你该找个人聊聊', a: 'Lori Gottlieb', s: 5, img: 'assets/books/liaoliao.jpg',
+        d: '李松蔚推荐序：“读这本书的过程，就是在灵魂的方寸之地一寸寸探索。越往下，越是晦暗幽深，于无声处听惊雷。”' },
+      { n: '早安，怪物', a: 'Catherine Gildiner', s: 5, img: 'assets/books/zaoan.jpg',
+        d: '作者以小说般的笔法写下了与5位来访者发生的故事回忆：如何面对难以言说的伤痛，如何发现内心潜藏的勇气，如何重新建立健康的人际边界，拥有爱与被爱的能力。' },
+      { n: '人间值得', a: '中村恒子/奥田弘美', s: 4, img: 'assets/books/renjianzhide.jpg',
+        d: '这本书就像家人轻声细语告诉我们：人生路上，不必慌张，未来岁月漫长，依旧值得期待，每一步都自有其意义。' }
+    ]
+  },
+  {
+    cat: '二、认知提升类',
+    items: [
+      { n: '认知觉醒', a: '周岭', s: 4, img: 'assets/books/renzhi.jpg',
+        d: '只要了解大脑规律，并知晓诸如“复利效应、舒适区边缘、学习权重比、学习平台期”等规律，你就可以大幅提升自己的耐心水平。' },
+      { n: '我们内心的冲突', a: 'Karen Danielsen Horney', s: 5, img: 'assets/books/chongtu.jpg',
+        d: '作者的温柔和力量在于她对内心冲突引发的心理问题的解决抱着积极乐观的态度。我们可以观察自己、分析自己、改变自己，最终获得内心的完整、成熟和安宁。' },
+      { n: '被讨厌的勇气', a: '岸见一郎', s: 5, img: 'assets/books/beitaoyan.jpg',
+        d: '「被讨厌的勇气」并不是要去吸引被讨厌的负向能量，而是，如果这是我生命想绽放出最美的光彩，那么，即使有被讨厌的可能，我都要用自己的双手双脚往那里走去。' }
+    ]
+  },
+  {
+    cat: '三、自我成长篇',
+    items: [
+      { n: '你当像鸟飞往你的山', a: 'Tara Westover', s: 5, img: 'assets/books/niao.jpg',
+        d: '一个十七岁前从未踏入教室的大山女孩，逃离大山，打开另一个世界。那是教育给她的新世界，那是生命的无限可能。' },
+      { n: '活出生命的意义', a: 'Frank.V.E.', s: 5, img: 'assets/books/huochu.jpg',
+        d: '由于生命中每一种情况对人来说是一种挑战，都会提出需要你去解决的问题，所以生命之意义的问题实际上被颠倒了。人不应该问他的生命之意义是什么，而必须承认是生命向他提出了问题。' },
+      { n: '亲密关系', a: '罗兰·米勒', s: 5, img: 'assets/books/qinmi.jpg',
+        d: '综合多个学科的研究成果，全面揭示爱情、婚姻、友谊等亲密关系的本质与规律。' }
+    ]
+  },
+  {
+    cat: '三、自我成长篇',
+    items: [
+      { n: '非暴力沟通', a: 'Marshall Rosenberg', s: 5, img: 'assets/books/feibaoli.jpg',
+        d: '有些话真的很伤人，言语上的指责、嘲讽、否定、说教以及任意打断、拒不回应、随意出口的评价和结论给我们带来的情感和精神上的创伤，甚至比肉体的伤害更加令人痛苦。' },
+      { n: '清单人生', a: 'Fredrik Backman', s: 4, img: 'assets/books/qingdan.jpg',
+        d: '“有些时候，继续生活下去还是比较容易得，你甚至不需要知道自己是谁。只要你明白自己究竟在哪里，根本不用知道自己是谁。”人生有一种艰难，是舍弃无比熟悉的生活，重新开始。' },
+      { n: '人性的弱点', a: 'Dale Carnegie', s: 4, img: 'assets/books/ruodian.jpg',
+        d: '包括与人相处的基本技巧、平安快乐的要诀、如何使人喜欢你、如何赢得他人的赞同、如何更好地说服他人、让家庭生活幸福快乐等十篇。' }
+    ]
+  },
+  {
+    cat: '四、温暖治愈类',
+    items: [
+      { n: '我与地坛', a: '史铁生', s: 5, img: 'assets/books/ditan.jpg',
+        d: '史铁生的写作与他的生命同构在了一起，他体验到的是苦难，表达出的却是存在的明朗和欢乐，他睿智的言辞，照亮的反而是我们日益幽暗的内心。' },
+      { n: '人间草木', a: '汪曾祺', s: 5, img: 'assets/books/caomu.jpg',
+        d: '能看出汪曾祺是一个爱生活的人。从天南写到海北，从植物写到动物，写美食、写日常小事，是一本让人远离喧嚣电子世界的好书。' },
+      { n: '阿勒泰的角落', a: '李娟', s: 5, img: 'assets/books/aletai.jpg',
+        d: '这样的土地容不下虚伪和矫情，一切都那么直接、真实。哪怕生活永远在一边抛弃，一边继续，只要感受力还在，永远可以发现新的、值得记忆的美好。' }
+    ]
+  },
+  {
+    cat: '四、温暖治愈类',
+    items: [
+      { n: '山茶文具店', a: '小川糸', s: 4, img: 'assets/books/shancha.jpg',
+        d: '雨宫家在镰仓世代经营代笔店，每代由女性来接任，鸠子在代笔书信的过程中，也认识了越来越多的朋友，走出了人生的阴霾。' },
+      { n: '解忧杂货店', a: '东野圭吾', s: 4, img: 'assets/books/jieyou.jpg',
+        d: '僻静的街道旁有一家杂货店，只要写下烦恼投进卷帘门的投信口，第二天就会在店后的牛奶箱里得到回答。他们将困惑写成信投进杂货店，奇妙的事不断发生。' },
+      { n: '岛上书店', a: 'Gabrielle Zevin', s: 4, img: 'assets/books/daoshang.jpg',
+        d: '费克里人近中年，在小岛上经营一家书店，命运从未眷顾过他。就在此时，他的生活来了转机，小岛上的几个生命紧紧相依，所有对书和生活的热爱都周而复始，愈加汹涌。' }
+    ]
+  },
+  {
+    cat: '五、勇气觉醒类',
+    items: [
+      { n: '杀死一只知更鸟', a: 'Harper Lee', s: 5, img: 'assets/books/zhigengniao.jpg',
+        d: '“勇敢就是，在你还没开始的时候就知道自己注定会输，但依然义无反顾地去做，并且不管发生什么都坚持到底。一个人很少能赢，但也总会有赢的时候。”' },
+      { n: '一个叫欧维的男人决定去死', a: 'Fredrik Backman', s: 5, img: 'assets/books/ouwei.jpg',
+        d: '一个脾气古怪，恪守常规的普通邻家老头，一对话痨夫妇和话痨女儿，一只掉了毛乱蓬蓬的流浪猫，一场人与人之间的迷人相遇。' },
+      { n: '外婆的道歉信', a: 'Fredrik Backman', s: 4, img: 'assets/books/waipo.jpg',
+        d: '爱莎有个四处惹麻烦的外婆，外婆留给爱莎一项任务，将道歉信送给她得罪过的九个邻居。这个关于爱、原谅和守护的故事，在合上书之后很久都难以忘记。' }
+    ]
+  },
+  {
+    cat: '五、勇气觉醒类',
+    items: [
+      { n: '带壳的牡蛎是大人的心脏', a: '拟泥nini/王曼霓', s: 4, img: 'assets/books/muli.jpg',
+        d: '“看起来坚强的、坚硬的、勇敢的人，其实拥有和牡蛎一样的‘缝隙’，都是非常脆弱的人，带壳的牡蛎是大人的心脏。”' },
+      { n: '瓦尔登湖', a: 'Henry David Thoreau', s: 4, img: 'assets/books/waerdeng.jpg',
+        d: '梭罗崇尚大自然，主张返璞归真，强调简单生活，听着是不是有点耳熟？跟咱们熟悉的几位古代诗人是不是有点像。每个阶段读感受都不同。' },
+      { n: '世界尽头的咖啡馆', a: 'John Strelecky', s: 4, img: 'assets/books/kafeiguan.jpg',
+        d: '人的一生中，总会有几段迷茫的时期。如果你曾经历，还记得是怎样度过的吗？如果你正在经历，那么欢迎你来到“为什么咖啡馆”。' }
+    ]
+  }
+];
+
+var bookPage = 0;
+var BOOK_PAGE_COUNT = 5;
+
+function starsOf(n) {
+  var s = '';
+  for (var i = 0; i < 5; i++) s += (i < n ? '★' : '☆');
+  return s;
+}
+
+function renderBookPages() {
+  var pages = document.getElementById('bookPages');
+  var pager = document.getElementById('bookPager');
+  if (!pages || !pager) return;
+
+  var html = '';
+  for (var p = 0; p < BOOK_PAGE_COUNT; p++) {
+    var chunk = BOOKS[p * 2].items.concat(BOOKS[p * 2 + 1].items);
+    html += '<div class="book-page' + (p === bookPage ? ' show' : '') + '">';
+    html += '<div class="book-cat"><span>' + BOOKS[p * 2].cat + '</span></div>';
+    html += '<div class="book-list">';
+    for (var i = 0; i < chunk.length; i++) {
+      var b = chunk[i];
+      html += '<div class="book-item">' +
+        '<div class="book-cover"><img src="' + b.img + '" alt="' + b.n + '"></div>' +
+        '<div class="book-info">' +
+          '<div class="book-name">《' + b.n + '》</div>' +
+          '<div class="book-author">作者：' + b.a + '</div>' +
+          '<div class="book-stars">推荐指数：<span>' + starsOf(b.s) + '</span></div>' +
+          '<div class="book-desc">' + b.d + '</div>' +
+        '</div></div>';
+    }
+    html += '</div></div>';
+  }
+  pages.innerHTML = html;
+
+  var pg = '<button class="pg-arrow" onclick="turnBook(-1)" aria-label="上一页">‹</button>';
+  for (var k = 0; k < BOOK_PAGE_COUNT; k++) {
+    pg += '<button class="pg-num' + (k === bookPage ? ' active' : '') + '" onclick="jumpBook(' + k + ')">' + (k + 1) + '</button>';
+  }
+  pg += '<button class="pg-arrow" onclick="turnBook(1)" aria-label="下一页">›</button>';
+  pager.innerHTML = pg;
+}
+
+function turnBook(step) {
+  bookPage = (bookPage + step + BOOK_PAGE_COUNT) % BOOK_PAGE_COUNT;
+  renderBookPages();
+}
+
+function jumpBook(i) {
+  bookPage = i;
+  renderBookPages();
+}
+
+renderBookPages();
+</script>
+
+  <section class="section" id="section-compare">
+    <div class="section-header">
+      <div class="section-icon" style="width:60px;height:60px;"><img src="assets/tabs/icon_compare.png" alt="比较放映厅" style="width:60px;height:60px;"></div>
+      <div>
+        <div class="section-title">比较放映厅</div>
+        <div class="section-sub">同辈比较是压力还是动力？</div>
+      </div>
+    </div>
+    <p class="compare-intro">社会比较理论告诉我们：人天生就会和别人比。但比较本身不是问题，「怎么比」才是关键。</p>
+    <div style="max-width: 1120px; margin: 0 auto; border-radius: 18px; overflow: hidden; box-shadow: 0 14px 38px rgba(179,103,96,0.20); border: 2px solid #FAAAAB;">
+      <iframe src="珞珈赛道·心之罗盘.html" title="珞珈赛道·心之罗盘"
+              style="width: 100%; height: 700px; border: none; display: block;"
+              allow="autoplay; fullscreen"></iframe>
+    </div>
+  </section>
+
+</div>
+
+<!-- ===== 心事详情弹窗（明信片：左图右文）===== -->
+<div class="case-modal" id="caseModal" onclick="backdropClose(event)">
+  <div class="modal-box postcard">
+    <button class="modal-close" onclick="closeCase()" aria-label="关闭">✕</button>
+    <div class="modal-img-wrap">
+      <img class="modal-img" id="modalImg" src="" alt="">
+      <div class="modal-pager">
+        <button class="pager-btn" id="pagerPrev" onclick="stepCase(-1)" aria-label="上一张">‹</button>
+        <span class="modal-count" id="modalCount">1 / 15</span>
+        <button class="pager-btn" id="pagerNext" onclick="stepCase(1)" aria-label="下一张">›</button>
+      </div>
+    </div>
+    <div class="modal-side">
+      <div class="case-frame" id="frameBox">
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-sub" id="modalSub"></div>
+        <ul id="modalVoices"></ul>
+        <div class="frame-h3">小建议</div>
+        <ul id="modalTips"></ul>
+        <div class="modal-quote" id="modalQuote"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 底部色带 ===== -->
+<footer class="bottombar">
+  <span class="bottombar-text">武汉大学心理咨询助理电话 (027-68772029)　　武汉大学24小时心理救援电话：13377884461　　制作团队：武汉大学心锚小队</span>
+</footer>
+
+<script>
+/* ===== 顶部治愈语：4 秒轮换 ===== */
+var healingLines = [
+  '你不必成为别人眼里的满分，只要成为自己心里的完整。',
+  '慢一点也没关系，路是自己走的，不是给别人看的。',
+  '允许自己今天只做到 60 分，明天再往前一点。',
+  '你的价值，不写在别人的成绩单上。',
+  '焦虑是在提醒你有些事你在乎，而不是在心里判自己有罪。',
+  '比较是为了看清方向，不是为了把自己比下去。',
+  '你已经撑过了很多个以为撑不过去的晚上。',
+  '情绪不是敌人，它只是想被听见。',
+  '今天先照顾好自己，剩下的明天再说。',
+  '珞珈山的风会记得，你认真走过的每一步。'
+];
+var lineIndex = 0;
+var topbarText = document.getElementById('topbarText');
+
+setInterval(function () {
+  topbarText.style.opacity = 0;
+  setTimeout(function () {
+    lineIndex = (lineIndex + 1) % healingLines.length;
+    topbarText.textContent = healingLines[lineIndex];
+    topbarText.style.opacity = 1;
+  }, 450);
+}, 4000);
+
+/* ===== 止耗抽屉配图切换 ===== */
+function sfSlide(btn, dir) {
+  var fig = btn.parentElement;
+  var img = fig.querySelector('.sf-img');
+  var imgs = fig.getAttribute('data-imgs').split(',');
+  var idx = parseInt(fig.getAttribute('data-idx') || '0');
+  idx = (idx + dir + imgs.length) % imgs.length;
+  fig.setAttribute('data-idx', idx);
+  img.src = 'assets/stop/' + imgs[idx];
+}
+
+/* ===== 轮播：4秒自动切换，首尾循环 ===== */
+var slideIndex = 0;
+var slideEls = document.querySelectorAll('.slide');
+var dotEls = document.querySelectorAll('.dot');
+var timer = null;
+
+function renderSlide() {
+  slideEls.forEach(function (el, i) {
+    el.classList.toggle('active', i === slideIndex);
+  });
+  dotEls.forEach(function (el, i) {
+    el.classList.toggle('active', i === slideIndex);
+  });
+}
+
+function setSlide(i) {
+  slideIndex = (i + slideEls.length) % slideEls.length;
+  renderSlide();
+  restartTimer();
+}
+
+function goSlide(step) {
+  setSlide(slideIndex + step);
+}
+
+function restartTimer() {
+  if (timer) clearInterval(timer);
+  timer = setInterval(function () {
+    slideIndex = (slideIndex + 1) % slideEls.length;
+    renderSlide();
+  }, 4000);
+}
+
+restartTimer();
+
+/* ===== 分格切换科普内容 ===== */
+function showSection(id, tab) {
+  document.querySelectorAll('.section').forEach(function (s) {
+    s.classList.remove('show');
+  });
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.classList.remove('active');
+  });
+  document.getElementById(id).classList.add('show');
+  tab.classList.add('active');
+}
+
+/* ===== 心事卷宗：15 张卡片 ===== */
+var CASES = [
+  {
+    t: '恋爱烦恼', s: '单身狗 vs 恋爱脑',
+    img: 'assets/cases/love.jpg',
+    hook: '为什么我还没脱单？是不是我不够好？为什么 TA 不回消息？',
+    voices: ['为什么我还没脱单？是不是我不够好？', '为什么 TA 不回消息？是不是不爱我了？', '恋爱和单身，都好难。'],
+    tips: ['别把自我价值绑在恋爱状态上', '给关系留空间，也给自己留底线', '先学会舒服地和自己相处'],
+    quote: '好的关系是加分项，不是必需品。'
+  },
+  {
+    t: '拖延症', s: 'DDL 是我的第一生产力',
+    img: 'assets/cases/delay.jpg',
+    hook: '不急，还有一周呢——然后就是最后一天熬通宵。',
+    voices: ['不急，还有一周呢。', '最后一天，熬通宵也要写完。', '为什么我又拖到最后？'],
+    tips: ['先做 5 分钟，帮自己启动', '把大任务拆成小步骤', '用固定时间做固定事，减少决策消耗'],
+    quote: '拖延不是懒，而是大脑在回避压力。'
+  },
+  {
+    t: '经济压力', s: '钱包比脸还干净',
+    img: 'assets/cases/money.jpg',
+    hook: '月初我是土豪买买买，月底我是乞丐泡面真香。',
+    voices: ['月初我是土豪，买买买！', '月底我是乞丐，泡面真香。', '钱从哪里来？'],
+    tips: ['先记开支，再做预算', '把消费分成需要和想要', '找兼职前先评估时间、安全和收益'],
+    quote: '预算不是抠门，而是让钱花得更安心。'
+  },
+  {
+    t: '迷茫症', s: '未来是一个谜',
+    img: 'assets/cases/lost.jpg',
+    hook: '我学的专业能干什么？以后能养活自己吗？我要去哪？',
+    voices: ['我学的专业能干什么？', '以后能养活自己吗？', '我要去哪？'],
+    tips: ['先定一个 3 个月能完成的小目标', '在行动中收集反馈，不急着下结论', '把人生当成探索，不是一次答卷'],
+    quote: '迷茫不是坏事，它说明你在认真选择。'
+  },
+  {
+    t: '孤独感', s: '热闹是他们的，我什么都没有',
+    img: 'assets/cases/lonely.jpg',
+    hook: '大家都在聚会，只有我像局外人；宿舍、食堂、教室三点一线。',
+    voices: ['大家都在聚会，只有我像局外人。', '宿舍、食堂、教室三点一线。', '热闹是他们的，我什么都没有。'],
+    tips: ['允许自己独处，也允许你慢一点建立关系', '从共同爱好开始聊起', '找一个能安心说话的人'],
+    quote: '孤独不等于被排斥，只是你们暂时不同频。'
+  },
+  {
+    t: '社恐', s: '线上社牛，线下社恐',
+    img: 'assets/cases/social.jpg',
+    hook: '网上聊得很嗨，见面就尴尬；路上遇到熟人立马绕路走。',
+    voices: ['网上聊得很嗨，见面就尴尬。', '路上遇到熟人，立马绕路走。', '恨不得隐身。'],
+    tips: ['不用强迫自己变外向', '从点头、微笑、一句问候开始', '把社交目标调低，舒服比满分更重要'],
+    quote: '社恐不是没礼貌，只是你的社交电池容量较小。'
+  },
+  {
+    t: '失眠症', s: '白天睡不醒，晚上睡不着',
+    img: 'assets/cases/sleep.jpg',
+    hook: '白天上课像条咸鱼，晚上越刷越精神，天亮了还没睡着。',
+    voices: ['白天上课像条咸鱼。', '晚上越刷越精神。', '天亮了，我还没睡着。'],
+    tips: ['睡前 1 小时减少刷手机', '建立固定起床时间，比硬躺更重要', '睡不着就起床做安静事，别和床较劲'],
+    quote: '睡眠有周期，偶尔失眠并不代表失控。'
+  },
+  {
+    t: '攀比焦虑', s: '别人家的孩子永远比我强',
+    img: 'assets/cases/compare.jpg',
+    hook: '他拿到了奖学金，我还在挂科边缘；同学实习进了大厂，我连简历都写不好。',
+    voices: ['他拿到了奖学金，我还在挂科边缘。', '同学实习进了大厂，我连简历都写不好。', '我是不是个废柴？'],
+    tips: ['把和别人比，改成和昨天的自己比', '列出你已有的资源和进步', '别人的进度不代表你的终点'],
+    quote: '优秀是坐标系，不是判断题。'
+  },
+  {
+    t: '自我怀疑', s: '我是不是个废物',
+    img: 'assets/cases/doubt.jpg',
+    hook: '考试没考好，是不是智商有问题？面试被拒，是不是能力不行？',
+    voices: ['考试没考好，我是不是智商有问题？', '面试被拒，我是不是能力不行？', '我真的很差劲。'],
+    tips: ['把事实和想法分开，一件事不能定义你的全部', '用成长型语言替换否定句'],
+    quote: '你比自己评价的更有价值。'
+  },
+  {
+    t: '焦虑困境', s: '卷不动，又躺不平',
+    img: 'assets/cases/anxiety.jpg',
+    hook: '别人都在卷，我是不是不努力了？每天在卷和躺之间反复横跳。',
+    voices: ['别人都在卷，我是不是不努力了？', '算了，明天再说吧。', '每天在卷和躺之间反复横跳。'],
+    tips: ['把目标缩小到一件能完成的小事', '允许自己休息，休息不是放弃', '区分焦虑来源，先处理最影响生活的一项'],
+    quote: '你不是一个人，这些感受很多人都经历过。'
+  },
+  {
+    t: '空心病', s: '不知道为什么要努力',
+    img: 'assets/cases/empty.jpg',
+    hook: '按部就班上课、完成任务，看起来一切正常，内心却空空的。',
+    voices: ['按部就班上课、完成任务，看起来一切正常。', '高考的目标消失之后，找不到新方向。', '不清楚自己努力的意义，内心空空的。'],
+    tips: ['不必急着找到人生终极目标', '先定下短期想完成的小事', '用小目标慢慢填补内心的空虚'],
+    quote: '空下来的时候，正是你重新选择方向的时候。'
+  },
+  {
+    t: '社交焦虑', s: '身处人群，依旧孤独',
+    img: 'assets/cases/socialanx.jpg',
+    hook: '人来人往，却很难遇到真正懂自己的人，融不进圈子也插不上话题。',
+    voices: ['人来人往，却很难遇到真正懂自己的人。', '融不进圈子，插不上话题。', '会下意识怀疑是不是自己不合群。'],
+    tips: ['不必强迫自己成为社交达人', '不用逼自己融入所有圈子', '从一句真心话开始，建立轻松的联结'],
+    quote: '好关系不靠勉强合群，而靠真诚相逢。'
+  },
+  {
+    t: '冒充者综合征', s: '总觉得“我不配”',
+    img: 'assets/cases/impostor.jpg',
+    hook: '拿到不错的成绩、抓住很好的机会，内心却总觉得只是运气好。',
+    voices: ['拿到不错的成绩，却觉得只是运气好。', '抓住很好的机会，却怕被发现“不够好”。', '越在优秀的环境里，这种感觉越强烈。'],
+    tips: ['把“我不配”换成“我还没习惯”', '给自己一点时间，让能力跟上当下的位置', '用做成的事提醒自己：你确实做到了'],
+    quote: '你脚下的位置，是你自己一步步走出来的。'
+  },
+  {
+    t: '情绪麻木', s: '好像对什么都没感觉',
+    img: 'assets/cases/numb.jpg',
+    hook: '很难再因为小事感动、紧张、开心，没有强烈的难过，也没有喜悦。',
+    voices: ['很难再因为小事感动、紧张、开心。', '没有强烈的难过，也没有喜悦。', '只是平淡麻木，像隔着一层玻璃。'],
+    tips: ['不必强行要求自己振作', '允许自己休息、放空', '麻木持续两周以上，记得寻求心理支持'],
+    quote: '麻木是大脑在保护你，不是你出了问题。'
+  },
+  {
+    t: '存在性焦虑', s: '忍不住思考活着的意义',
+    img: 'assets/cases/meaning.jpg',
+    hook: '夜深时会冒出宏大的疑问：人活着到底是为了什么？',
+    voices: ['夜深的时候，会冒出宏大的疑问。', '人活着到底是为了什么？', '这个问题，好像没有标准答案。'],
+    tips: ['不用逼迫自己立刻找到答案', '在读书、体验、与人相处里慢慢靠近答案', '把大问题拆成今天能做的一件小事'],
+    quote: '意义不是想出来的，是活出来的。'
+  }
+];
+var EMPTY_CARDS = 0;
+var caseGrid = document.getElementById('caseGrid');
+
+function renderCases() {
+  var html = '';
+
+  CASES.forEach(function (c, i) {
+    html += '<div class="case-card">' +
+      '<div class="case-cover"><img src="' + c.img + '" alt="' + c.t + '" loading="lazy"></div>' +
+      '<div class="case-body">' +
+        '<div class="case-title">' + c.t + '｜' + c.s + '</div>' +
+        '<div class="case-hook">' + c.hook + '</div>' +
+        '<button class="case-btn" onclick="openCase(' + i + ')">查看</button>' +
+      '</div>' +
+    '</div>';
+  });
+
+  for (var k = 0; k < EMPTY_CARDS; k++) {
+    html += '<div class="case-card empty">' +
+      '<div class="case-cover">插图待补充</div>' +
+      '<div class="case-body">' +
+        '<div class="case-title">待补充卷宗</div>' +
+        '<div class="case-hook">这一份心事还在收集插图，很快和大家见面。</div>' +
+        '<button class="case-btn" disabled>待补充</button>' +
+      '</div>' +
+    '</div>';
+  }
+
+  caseGrid.innerHTML = html;
+}
+
+renderCases();
+
+var currentCase = 0;
+
+function openCase(i) {
+  var c = CASES[i];
+  currentCase = i;
+  document.getElementById('modalImg').src = c.img;
+  document.getElementById('modalImg').alt = c.t;
+  var ownFrames = ['love','delay','money','lost','lonely','social','sleep','compare','doubt','anxiety'];
+  // 第 1-10 号各用自己的边框；第 11 号起循环复用 1-10 号边框
+  var frameFile = ownFrames[i % 10];
+  document.getElementById('frameBox').style.backgroundImage = 'url("assets/frames/' + frameFile + '.jpg")';
+  document.getElementById('modalTitle').textContent = c.t + '｜' + c.s;
+  document.getElementById('modalSub').textContent = '心事卷宗 · 第 ' + (i + 1) + ' 号';
+
+  var voices = '';
+  c.voices.forEach(function (v) { voices += '<li>' + v + '</li>'; });
+  document.getElementById('modalVoices').innerHTML = voices;
+
+  var tips = '';
+  c.tips.forEach(function (v) { tips += '<li>' + v + '</li>'; });
+  document.getElementById('modalTips').innerHTML = tips;
+
+  document.getElementById('modalQuote').textContent = c.quote;
+  document.getElementById('modalCount').textContent = (i + 1) + ' / ' + CASES.length;
+  document.getElementById('pagerPrev').disabled = (i === 0);
+  document.getElementById('pagerNext').disabled = (i === CASES.length - 1);
+
+  document.getElementById('caseModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  document.querySelector('.modal-side').scrollTop = 0;
+}
+
+function stepCase(step) {
+  var t = currentCase + step;
+  // 1 → 15，不循环；到两端即停
+  if (t < 0 || t >= CASES.length) return;
+  openCase(t);
+}
+
+function closeCase() {
+  document.getElementById('caseModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function backdropClose(e) {
+  if (e.target.id === 'caseModal') closeCase();
+}
+
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') closeCase();
+  if (!document.getElementById('caseModal').classList.contains('show')) return;
+  if (e.key === 'ArrowLeft') stepCase(-1);
+  if (e.key === 'ArrowRight') stepCase(1);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>珞珈赛道 · 心之罗盘</title>
+<style>
+  :root {
+    --cream: #FBF4E6;
+    --paper: #FFFDF8;
+    --ink: #3A2A21;
+    --ink2: #6C584C;
+    --ink3: #9B8574;
+    --line: #E9DAC3;
+    --orange: #D4782F;
+    --orange-d: #AC5D1E;
+    --green: #6C8C4B;
+    --red: #B4524A;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    background: #EFE4D2;
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    -webkit-font-smoothing: antialiased;
+  }
+  .game-container {
+    width: 100%;
+    max-width: 1280px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    background: var(--cream);
+  }
+  .game-container::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(900px 420px at 8% -12%, rgba(212,120,47,0.10), transparent 70%),
+      radial-gradient(760px 420px at 96% 108%, rgba(108,140,75,0.10), transparent 70%);
+    z-index: 0;
+  }
+
+  /* ===== 顶部 HUD ===== */
+  .hud {
+    position: relative;
+    z-index: 60;
+    flex: 0 0 auto;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    padding: 0 34px;
+    background: rgba(255,253,248,0.94);
+    border-bottom: 1px solid var(--line);
+  }
+  .hud.hidden { display: none; }
+  .hud-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 0 0 auto;
+  }
+  .hud-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #FFF0D6;
+    border: 1px solid #F1DEC0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: background 0.6s, border-color 0.6s;
+  }
+  .hud-avatar img {
+    width: 42px;
+    height: auto;
+    margin-top: 6px;
+    display: block;
+  }
+  .hud-avatar.glow { background: #EDF4E1; border-color: #D5E3BC; }
+  .hud-avatar.fog { background: #F8E6E4; border-color: #EFCFCA; }
+  .hud-step {
+    font-size: 12px;
+    color: var(--ink2);
+    letter-spacing: 1.2px;
+  }
+
+  /* 顶部路径进度 */
+  .path-bar {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: none;
+    align-items: center;
+    gap: 12px;
+  }
+  .path-bar.show { display: flex; }
+  .path-label { font-size: 11px; color: var(--ink3); letter-spacing: 1px; white-space: nowrap; }
+  .path-line {
+    flex: 1;
+    height: 2px;
+    background: var(--line);
+    position: relative;
+    margin: 0 26px;
+  }
+  .path-dot {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #E7D6BC;
+    transition: background 0.4s, transform 0.4s;
+  }
+  .path-dot.done { background: var(--orange); transform: translate(-50%, -50%) scale(1.15); }
+  .path-fox {
+    position: absolute;
+    left: 0;
+    bottom: -12px;
+    height: 44px;
+    transform: translateX(-50%);
+    transition: left 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 3px 5px rgba(90,60,40,0.18));
+  }
+
+  .hud-stats { display: flex; gap: 22px; flex: 0 0 auto; }
+  .hud-stat { display: flex; flex-direction: column; gap: 5px; min-width: 60px; }
+  .hud-stat-top { display: flex; align-items: baseline; gap: 6px; }
+  .hud-stat-num {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .hud-stat-num.growth { color: var(--green); }
+  .hud-stat-num.overthink { color: var(--red); }
+  .hud-stat-label { font-size: 11px; color: var(--ink3); letter-spacing: 1px; }
+  .hud-mini {
+    height: 3px;
+    background: #F0E4D1;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .hud-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    width: 0;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .hud-bar-fill.growth { background: linear-gradient(90deg, #A8C178, #6C8C4B); }
+  .hud-bar-fill.overthink { background: linear-gradient(90deg, #D98B80, #B4524A); }
+
+  /* ===== 视图 ===== */
+  .view {
+    display: none;
+    position: relative;
+    z-index: 1;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 40px 54px 44px;
+  }
+  .view.active { display: flex; animation: fadeIn 0.45s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== 开场页 ===== */
+  #start-view.active {
+    display: grid;
+    grid-template-columns: 1.12fr 1fr;
+    grid-template-rows: auto 1fr;
+    align-items: center;
+    gap: 28px 54px;
+    padding: 107px 54px 40px;
+  }
+  #start-view .start-game-title {
+    grid-column: 1 / -1;
+    text-align: center;
+    margin-bottom: 0;
+  }
+  .start-art {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 22px 48px rgba(90,60,40,0.16);
+    border: 1px solid rgba(233,218,195,0.9);
+  }
+  .start-art img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .start-art::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    box-shadow: inset 0 0 0 6px rgba(255,255,255,0.35);
+    border-radius: 16px;
+    pointer-events: none;
+  }
+  .start-panel { min-width: 0; text-align: center; }
+  .start-game-title {
+    font-size: 44px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: 6px;
+    line-height: 1.22;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .start-game-title span {
+    color: var(--orange);
+    letter-spacing: 8px;
+  }
+  .start-game-sub {
+    font-size: 15px;
+    line-height: 2;
+    color: var(--ink2);
+    margin-bottom: 28px;
+    text-align: center;
+  }
+  .start-meta {
+    display: flex;
+    gap: 34px;
+    justify-content: center;
+    padding: 18px 0 22px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 30px;
+  }
+  .start-meta-item { min-width: 0; }
+  .start-meta-num {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--orange);
+    letter-spacing: 1px;
+  }
+  .start-meta-text {
+    font-size: 12.5px;
+    color: var(--ink3);
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+  .start-btn {
+    background: linear-gradient(135deg, #E08A38, #C2681F);
+    color: #FFFCF4;
+    border: none;
+    padding: 15px 44px;
+    border-radius: 999px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    cursor: pointer;
+    box-shadow: 0 12px 26px rgba(196,106,32,0.30);
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+  }
+  .start-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 30px rgba(196,106,32,0.36); }
+  .start-btn:active { transform: scale(0.97); }
+  .start-tip {
+    display: block;
+    font-size: 12px;
+    color: var(--ink3);
+    letter-spacing: 1px;
+    margin-top: 14px;
+  }
+
+  /* ===== 路口选择页（横屏：左叙事右选项）===== */
+  .scene-breadcrumb {
+    font-size: 11.5px;
+    color: var(--orange);
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    margin: 0 0 10px;
+  }
+  .scene-title {
+    font-size: 27px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: 2px;
+    line-height: 1.35;
+    margin: 0 0 18px;
+  }
+  .scene-card {
+    background: var(--paper);
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    padding: 24px 26px;
+    box-shadow: 0 14px 34px rgba(90,60,40,0.07);
+    position: relative;
+  }
+  .scene-text {
+    font-size: 14.5px;
+    color: var(--ink2);
+    line-height: 2;
+    text-align: justify;
+  }
+  .scene-text strong { color: var(--orange-d); font-weight: 700; }
+
+  .choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .choice-btn {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 18px 20px;
+    font-size: 14px;
+    line-height: 1.85;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.22s ease;
+    position: relative;
+    font-family: inherit;
+    display: block;
+    width: 100%;
+  }
+  .choice-btn:hover {
+    border-color: var(--orange);
+    background: #FFFCF2;
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px rgba(196,106,32,0.14);
+  }
+  .choice-btn:active { transform: scale(0.985); }
+  .choice-btn.selected {
+    border-color: var(--orange);
+    background: #FFF4DE;
+    transform: scale(0.985);
+  }
+  .choice-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #FDF0DA;
+    color: var(--orange-d);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: Georgia, "Times New Roman", serif;
+    letter-spacing: 0;
+    margin-bottom: 6px;
+  }
+  .choice-btn:hover .choice-tag,
+  .choice-btn.selected .choice-tag {
+    background: var(--orange);
+    color: #FFFCF4;
+  }
+
+  /* ===== 科普卡片 ===== */
+  .science-tag {
+    display: inline-block;
+    background: #EDF4E1;
+    color: var(--green);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  .science-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+  }
+  .science-text {
+    font-size: 14px;
+    color: var(--ink2);
+    line-height: 2;
+    text-align: justify;
+    margin-bottom: 14px;
+  }
+  .science-text strong { color: var(--orange-d); }
+  .science-highlight {
+    background: #FDF4E3;
+    border-left: 3px solid var(--orange);
+    border-radius: 3px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--orange-d);
+    line-height: 1.9;
+    margin: 18px 0 26px;
+    text-align: justify;
+  }
+  .science-next {
+    background: linear-gradient(135deg, #E08A38, #C2681F);
+    color: #FFFCF4;
+    border: none;
+    padding: 14px 38px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 12px 26px rgba(196,106,32,0.26);
+    transition: transform 0.2s;
+  }
+  .science-next:hover { transform: translateY(-2px); }
+
+  /* ===== 翻面关卡 ===== */
+  .shadow-scene {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 0 0 4px;
+  }
+  .shadow-item {
+    background: linear-gradient(160deg, #4A3B31, #2F2822);
+    border-radius: 8px;
+    padding: 18px 16px;
+    min-height: 210px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 10px;
+    color: #F3E7D8;
+    cursor: pointer;
+    transition: background 0.5s ease;
+  }
+  .shadow-item.flipped {
+    background: linear-gradient(160deg, #EFF6E0, #DCE9C6);
+    color: #2F4322;
+  }
+  .shadow-icon {
+    font-size: 26px;
+    opacity: 0.85;
+    margin-bottom: auto;
+  }
+  .shadow-label {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.55;
+    letter-spacing: 1px;
+  }
+  .shadow-item.flipped .shadow-label { color: #3E5A2A; }
+  .shadow-sub {
+    font-size: 12px;
+    color: rgba(243,231,216,0.7);
+    line-height: 1.7;
+  }
+  .shadow-item.flipped .shadow-sub { color: #6C8C4B; }
+  .flip-hint {
+    font-size: 12px;
+    color: var(--ink3);
+    letter-spacing: 1px;
+    margin-top: 14px;
+  }
+  .flip-complete-btn {
+    background: linear-gradient(135deg, #86A85C, #5E7E3E);
+    color: #FFFCF4;
+    border: none;
+    padding: 14px 38px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 12px 26px rgba(94,126,62,0.28);
+    transition: transform 0.2s;
+    margin-top: 30px;
+  }
+  .flip-complete-btn:hover { transform: translateY(-2px); }
+
+  /* ===== 反馈浮层 ===== */
+  .feedback-toast {
+    position: fixed;
+    top: 88px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-16px);
+    background: rgba(255,253,248,0.97);
+    padding: 13px 26px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    box-shadow: 0 16px 36px rgba(90,60,40,0.16);
+    font-size: 13px;
+    color: var(--ink);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 200;
+    max-width: 460px;
+    text-align: center;
+    line-height: 1.75;
+    white-space: pre-line;
+    letter-spacing: 0.5px;
+  }
+  .feedback-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ===== 结算页 ===== */
+  .result-header { margin-bottom: 14px; }
+  .result-badge {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Georgia, "Songti SC", "SimSun", serif;
+    font-size: 30px;
+    color: #FFFCF4;
+    margin-bottom: 12px;
+    box-shadow: 0 12px 26px rgba(90,60,40,0.16);
+  }
+  .result-type {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .result-subtitle {
+    font-size: 13px;
+    color: var(--ink3);
+    line-height: 1.7;
+    letter-spacing: 0.5px;
+  }
+  .result-section {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 18px 20px;
+    box-shadow: 0 10px 26px rgba(90,60,40,0.05);
+  }
+  .result-section h4 {
+    font-size: 12px;
+    color: var(--orange-d);
+    margin-bottom: 14px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sec-num {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 11px;
+    color: var(--ink3);
+    letter-spacing: 0;
+  }
+  .result-desc { font-size: 13.5px; line-height: 2; color: var(--ink2); text-align: justify; }
+
+  /* 坐标系 */
+  .chart-container { position: relative; height: 168px; margin: 4px 0 0; }
+  .chart-axis-x { position: absolute; bottom: 20px; left: 34px; right: 10px; height: 1px; background: var(--line); }
+  .chart-axis-y { position: absolute; bottom: 20px; left: 34px; top: 8px; width: 1px; background: var(--line); }
+  .chart-point {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    transform: translate(-50%, 50%);
+    transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    box-shadow: 0 0 0 5px rgba(255,255,255,0.85);
+  }
+  .chart-label-x {
+    position: absolute;
+    bottom: 2px;
+    left: 34px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--ink3);
+  }
+  .chart-label-y {
+    position: absolute;
+    left: -19px;
+    top: 8px;
+    bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 9.5px;
+    color: var(--ink3);
+    width: 40px;
+    text-align: right;
+    line-height: 1.2;
+  }
+  .chart-quadrant { position: absolute; font-size: 9.5px; color: #C4B4A2; letter-spacing: 0.5px; }
+
+  .tip-list { list-style: none; }
+  .tip-list li {
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--ink2);
+    padding-left: 16px;
+    position: relative;
+    margin-bottom: 10px;
+    text-align: justify;
+  }
+  .tip-list li:last-child { margin-bottom: 0; }
+  .tip-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--orange);
+  }
+  .theory-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+  .theory-tag {
+    background: #FDF1DC;
+    color: var(--orange-d);
+    font-size: 11.5px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    letter-spacing: 0.5px;
+  }
+  .result-figure {
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 28px rgba(90,60,40,0.08);
+    background: #F3E8D6;
+  }
+  .result-figure img { width: 100%; height: 176px; object-fit: contain; display: block; }
+  .result-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .result-cards-label {
+    flex: 0 0 100%;
+    font-size: 11px;
+    color: var(--ink3);
+    letter-spacing: 1.5px;
+    margin-bottom: -2px;
+  }
+  .result-cards img {
+    flex: 1;
+    width: 0;
+    aspect-ratio: 3 / 4;
+    height: auto;
+    object-fit: contain;
+    background: #FFFDF8;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+  }
+
+  /* ===== 成长标尺页 ===== */
+  .ruler-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+  }
+  .ruler-sub {
+    font-size: 13.5px;
+    color: var(--ink2);
+    line-height: 2;
+    margin-bottom: 22px;
+  }
+  .ruler-input {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 18px 20px;
+    font-size: 15px;
+    color: var(--ink);
+    outline: none;
+    resize: none;
+    font-family: inherit;
+    line-height: 1.9;
+    background: #FFFDF8;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .ruler-input:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(212,120,47,0.12);
+  }
+  .ruler-input::placeholder { color: #C0AD99; }
+  .screenshot-btn {
+    background: linear-gradient(135deg, #E08A38, #C2681F);
+    color: #FFFCF4;
+    border: none;
+    padding: 10px 32px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 12px 26px rgba(196,106,32,0.3);
+  }
+  .restart-link {
+    font-size: 13px;
+    color: var(--ink3);
+    text-decoration: none;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== 开场影片 ===== */
+  .walk-scene {
+    position: fixed;
+    inset: 0;
+    background: #14100E;
+    z-index: 300;
+    display: none;
+    overflow: hidden;
+  }
+  .walk-scene.show { display: block; }
+  .walk-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #14100E;
+  }
+  .walk-skip {
+    position: absolute;
+    bottom: 34px;
+    right: 34px;
+    background: rgba(255,253,248,0.14);
+    border: 1px solid rgba(255,253,248,0.4);
+    color: rgba(255,253,248,0.9);
+    padding: 9px 22px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    font-family: inherit;
+    backdrop-filter: blur(6px);
+    transition: background 0.2s;
+  }
+  .walk-skip:hover { background: rgba(255,253,248,0.26); }
+  .walk-tap {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    background: rgba(20,16,14,0.55);
+    color: #FFF6E8;
+    font-size: 14px;
+    letter-spacing: 2px;
+    cursor: pointer;
+  }
+  .walk-tap.show { display: flex; }
+  .walk-tap .tap-ring {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,246,232,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+
+  /* ===== 3D 翻面效果 ===== */
+  .flip-container { perspective: 1200px; cursor: pointer; }
+  .flip-inner {
+    position: relative;
+    width: 100%;
+    transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+  }
+  .flip-container.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-front, .flip-back { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .flip-back {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    transform: rotateY(180deg);
+  }
+
+  /* ===== 横屏专属栅格 ===== */
+  #scene1-view.active, #scene2-view.active, #scene3-view.active,
+  #scene4-view.active, #scene6-view.active {
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    column-gap: 48px;
+    align-items: start;
+  }
+  #scene1-view .scene-breadcrumb, #scene2-view .scene-breadcrumb,
+  #scene3-view .scene-breadcrumb, #scene4-view .scene-breadcrumb,
+  #scene6-view .scene-breadcrumb { grid-column: 1; grid-row: 1; }
+  #scene1-view .scene-title, #scene2-view .scene-title, #scene3-view .scene-title,
+  #scene4-view .scene-title, #scene6-view .scene-title { grid-column: 1; grid-row: 2; }
+  #scene1-view .scene-card, #scene2-view .scene-card, #scene3-view .scene-card,
+  #scene4-view .scene-card, #scene6-view .scene-card { grid-column: 1; grid-row: 3; align-self: start; }
+  #scene1-view .choices, #scene2-view .choices, #scene3-view .choices,
+  #scene4-view .choices, #scene6-view .choices { grid-column: 2; grid-row: 3; align-self: start; }
+
+  #science1-view.active, #science2-view.active {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 52px;
+    padding: 34px 54px;
+  }
+  .sci-figure {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    box-shadow: 0 22px 44px rgba(90,60,40,0.12);
+  }
+  .sci-figure img { width: 100%; height: auto; display: block; }
+  .science-card { min-width: 0; }
+
+  #flip-view.active {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    align-items: center;
+    gap: 52px;
+  }
+  .flip-note {
+    font-size: 13px;
+    color: var(--ink2);
+    line-height: 2;
+    margin-top: 18px;
+  }
+  .flip-fox {
+    width: 168px;
+    display: block;
+    margin: 26px 0 0;
+    filter: drop-shadow(0 14px 22px rgba(90,60,40,0.16));
+  }
+
+  #result-view.active {
+    display: grid;
+    grid-template-columns: 352px minmax(0, 1fr);
+    gap: 40px;
+    align-items: stretch;
+    padding: 34px 54px 30px;
+  }
+  .result-aside { min-width: 0; display: flex; flex-direction: column; }
+  .result-main {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: min-content;
+    gap: 16px;
+    align-content: start;
+  }
+  .result-actions {
+    grid-column: 1 / span 2;
+    justify-self: start;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .result-main .start-btn {
+    justify-self: start;
+    margin-top: 4px;
+    padding: 14px 40px;
+    font-size: 15px;
+  }
+
+  #ruler-view.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  .ruler-stage {
+    position: relative;
+    width: 100%;
+    max-width: 1020px;
+    aspect-ratio: 16 / 9;
+  }
+  .ruler-stage > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    display: block;
+  }
+  .ruler-input {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: 72%;
+    height: 13.5%;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 0;
+    font-family: "Kaiti SC", "STKaiti", "KaiTi", "楷体", serif;
+    font-size: 19px;
+    line-height: 1.85;
+    color: #5A3A28;
+  }
+  .ruler-actions {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 6.5%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 26px;
+  }
+  .home-link {
+    display: inline-block;
+    font-size: 14px;
+    color: var(--ink2);
+    background: rgba(255,253,248,0.9);
+    border: 1px solid var(--line);
+    padding: 9px 26px;
+    border-radius: 999px;
+    text-decoration: none;
+    cursor: pointer;
+    letter-spacing: 2px;
+  }
+  .home-link:hover { color: var(--orange-d); border-color: var(--orange); }
+
+  /* 锦囊大图浮层 */
+  .photo-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 16, 14, 0.88);
+    z-index: 400;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+  }
+  .photo-lightbox.show { display: flex; }
+  .photo-lightbox img {
+    max-width: 580px;
+    max-height: 86vh;
+    border-radius: 8px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+  .photo-save {
+    background: var(--orange);
+    color: #FFFCF4;
+    padding: 11px 34px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    box-shadow: 0 10px 26px rgba(212,120,47,0.4);
+  }
+  .photo-save:hover { background: var(--orange-d); }
+  .photo-tip { font-size: 12px; color: rgba(255,253,248,0.55); letter-spacing: 1px; }
+  .photo-close {
+    position: absolute;
+    top: 20px;
+    right: 28px;
+    font-size: 36px;
+    color: rgba(255,253,248,0.8);
+    cursor: pointer;
+    line-height: 1;
+    user-select: none;
+  }
+  .photo-close:hover { color: #fff; }
+
+  /* 心理学科普弹窗 */
+  .theory-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 16, 14, 0.72);
+    z-index: 410;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .theory-lightbox.show { display: flex; }
+  .theory-card {
+    background: #FFFCF4;
+    max-width: 560px;
+    width: 100%;
+    border-radius: 14px;
+    padding: 32px 38px 28px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .theory-card-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--orange-d);
+    margin-bottom: 14px;
+    letter-spacing: 1px;
+  }
+  .theory-card-body {
+    font-size: 14.5px;
+    line-height: 2;
+    color: var(--ink2);
+    white-space: pre-line;
+  }
+  .theory-close {
+    display: inline-block;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--ink3);
+    cursor: pointer;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
+  }
+  .theory-close:hover { color: var(--orange-d); }
+  .theory-tag { cursor: pointer; }
+
+  /* ===== 窄屏回退（竖屏/小窗）===== */
+  @media (max-width: 900px) {
+    .hud { height: auto; flex-wrap: wrap; gap: 10px; padding: 12px 18px; }
+    .path-bar { order: 3; flex-basis: 100%; }
+    .hud-stats { margin-left: auto; }
+    .view, #start-view.active, #science1-view.active, #science2-view.active,
+    #flip-view.active, #result-view.active, #ruler-view.active {
+      display: block;
+      padding: 24px 18px 30px;
+    }
+    #start-view.active .start-art { margin-bottom: 24px; }
+    .start-game-title { font-size: 30px; letter-spacing: 3px; }
+    .start-meta { gap: 20px; flex-wrap: wrap; }
+    #scene1-view.active, #scene2-view.active, #scene3-view.active,
+    #scene4-view.active, #scene6-view.active { display: block; }
+    .choices { grid-template-columns: 1fr; margin-top: 18px; }
+    .scene-title { font-size: 21px; }
+    .shadow-scene { grid-template-columns: 1fr; }
+    .shadow-item { min-height: 96px; }
+    .sci-figure, .result-figure, .ruler-art { margin-bottom: 20px; }
+    .result-main { display: block; }
+    .result-main .result-section { margin-bottom: 12px; }
+    .result-cards img { height: 140px; }
+    .flip-fox { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+
+  <!-- ===== 开场动画（影片）===== -->
+  <div class="walk-scene" id="walk-scene">
+    <video class="walk-video" id="walk-video" src="小狐终版.mp4" autoplay playsinline preload="auto"></video>
+    <div class="walk-tap" id="walk-tap" onclick="tapPlay()">
+      <div class="tap-ring">▶</div>
+      <span>点击继续播放，开启有声旅程</span>
+    </div>
+    <button class="walk-skip" onclick="skipWalk()">跳过 →</button>
+  </div>
+
+  <!-- ===== 顶部 HUD ===== -->
+  <div class="hud hidden" id="hud">
+    <div class="hud-left">
+      <div class="hud-avatar" id="hud-avatar">
+        <img id="hud-fox" src="assets/fox/fox_head.png" alt="小狐">
+      </div>
+      <div class="hud-step" id="hud-step">第 1 站</div>
+    </div>
+
+    <div class="path-bar" id="path-bar">
+      <span class="path-label">起点</span>
+      <div class="path-line">
+        <div class="path-dot" style="left: 16.6%;"></div>
+        <div class="path-dot" style="left: 33.3%;"></div>
+        <div class="path-dot" style="left: 50%;"></div>
+        <div class="path-dot" style="left: 66.6%;"></div>
+        <div class="path-dot" style="left: 83.3%;"></div>
+        <img class="path-fox" id="path-fox" src="assets/fox/fox_walk.png" alt="进度小狐" style="left: 0%;">
+      </div>
+      <span class="path-label">终点</span>
+    </div>
+
+    <div class="hud-stats">
+      <div class="hud-stat">
+        <div class="hud-stat-top">
+          <span class="hud-stat-num growth" id="growth-num">0</span>
+          <span class="hud-stat-label">成长</span>
+        </div>
+        <div class="hud-mini"><div class="hud-bar-fill growth" id="growth-bar" style="width: 0%"></div></div>
+      </div>
+      <div class="hud-stat">
+        <div class="hud-stat-top">
+          <span class="hud-stat-num overthink" id="overthink-num">0</span>
+          <span class="hud-stat-label">内耗</span>
+        </div>
+        <div class="hud-mini"><div class="hud-bar-fill overthink" id="overthink-bar" style="width: 0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 反馈浮层 -->
+  <div class="feedback-toast" id="toast"></div>
+
+  <!-- 锦囊大图查看层 -->
+  <div class="photo-lightbox" id="photoLightbox" onclick="closePhoto()">
+    <span class="photo-close" onclick="closePhoto()">×</span>
+    <img id="photoBig" src="" alt="锦囊大图">
+    <a class="photo-save" id="photoSave" href="" download="图片.jpg" onclick="event.stopPropagation()">保存这张图</a>
+    <span class="photo-tip">点击空白处或 × 关闭</span>
+  </div>
+
+  <!-- 心理学科普弹窗 -->
+  <div class="theory-lightbox" id="theoryLightbox" onclick="closeTheory()">
+    <div class="theory-card" onclick="event.stopPropagation()">
+      <div class="theory-card-title" id="theoryTitle"></div>
+      <div class="theory-card-body" id="theoryBody"></div>
+      <span class="theory-close" onclick="closeTheory()">关闭</span>
+    </div>
+  </div>
+
+  <!-- ===== 开场页 ===== -->
+  <div class="view active" id="start-view">
+    <h1 class="start-game-title">珞珈赛道·心之罗盘</h1>
+    <figure class="start-art">
+      <img src="assets/game/campus.jpg" alt="大学是赛场">
+    </figure>
+    <div class="start-panel">
+      <p class="start-game-sub">
+        大学是一场无形的赛场，同辈比较，是压力还是动力？<br>
+        走过 6 个路口，翻面 3 团影子，解锁 2 个心理学冷知识，
+        找到属于你自己的成长罗盘。
+      </p>
+      <div class="start-meta">
+        <div class="start-meta-item">
+          <div class="start-meta-num">01 — 06</div>
+          <div class="start-meta-text">六个校园路口</div>
+        </div>
+        <div class="start-meta-item">
+          <div class="start-meta-num">4 min</div>
+          <div class="start-meta-text">凭第一直觉选择</div>
+        </div>
+      </div>
+      <button class="start-btn" onclick="startGame()">开始旅程 →</button>
+      <span class="start-tip">建议佩戴耳机 · 开场有 20 秒小狐影片</span>
+    </div>
+  </div>
+
+  <!-- ===== 路口1：朋友圈风暴 ===== -->
+  <div class="view" id="scene1-view">
+    <div class="scene-breadcrumb">路口 01 / 06</div>
+    <h2 class="scene-title">傍晚的朋友圈风暴</h2>
+    <div class="scene-card">
+      <div class="scene-text">
+        从教五走回宿舍的傍晚，你点开朋友圈——<br><br>
+        室友敲定了<strong>暑期大厂实习</strong>，同院伙伴晒出<strong>满绩成绩单</strong>，隔壁专业同学刚拿了<strong>竞赛国家级奖项</strong>。<br><br>
+        你的第一反应是？
+      </div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="choose(1, 'A')">
+        <span class="choice-tag">A</span><br>
+        点进去看看大家都在做什么，给自己也列个小清单
+      </button>
+      <button class="choice-btn" onclick="choose(1, 'B')">
+        <span class="choice-tag">B</span><br>
+        锁屏走得更快了，心里发慌：我是不是已经落后了？
+      </button>
+      <button class="choice-btn" onclick="choose(1, 'C')">
+        <span class="choice-tag">C</span><br>
+        点个赞就关掉，每个人节奏不一样
+      </button>
+      <button class="choice-btn" onclick="choose(1, 'D')">
+        <span class="choice-tag">D</span><br>
+        立刻打开选课系统，先报个竞赛再说
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== 路口2：那个你想要的奖 ===== -->
+  <div class="view" id="scene2-view">
+    <div class="scene-breadcrumb">路口 02 / 06</div>
+    <h2 class="scene-title">那个你想要的奖</h2>
+    <div class="scene-card">
+      <div class="scene-text">
+        学院公示栏前围了一圈人。你挤进去——<br><br>
+        那个你准备了半年、心心念念想拿的<strong>国家级竞赛奖项</strong>，名单上写的是隔壁班同学的名字。<br><br>
+        他之前还找你借过笔记呢。你的第一反应是？
+      </div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="choose(2, 'A')">
+        <span class="choice-tag">A</span><br>
+        真心替他高兴，回头找他聊聊明年怎么准备
+      </button>
+      <button class="choice-btn" onclick="choose(2, 'B')">
+        <span class="choice-tag">B</span><br>
+        愣了好久：我花了那么多时间，果然还是我不行
+      </button>
+      <button class="choice-btn" onclick="choose(2, 'C')">
+        <span class="choice-tag">C</span><br>
+        扫一眼就走了，他有他的努力，我有我的路
+      </button>
+      <button class="choice-btn" onclick="choose(2, 'D')">
+        <span class="choice-tag">D</span><br>
+        回去再加两个竞赛群，报三个比赛追上他
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== 科普1：冒名顶替综合征 ===== -->
+  <div class="view science-view" id="science1-view">
+    <figure class="sci-figure">
+      <img src="assets/game/report.jpg" alt="同龄压力综合征筛查报告">
+    </figure>
+    <div class="science-card">
+      <div class="science-tag">心理学冷知识 · 你不是一个人</div>
+      <h3 class="science-title">冒名顶替综合征</h3>
+      <p class="science-text">
+        有没有过这种感觉——明明拿到了奖、拿到了offer，心里却在想：<strong>"我是不是运气好？迟早要被发现其实我没那么厉害。"</strong>
+      </p>
+      <p class="science-text">
+        这就是"冒名顶替综合征"（Impostor Syndrome）：越优秀的人越容易觉得自己是"骗子"。研究发现，<strong>高达70%的人</strong>都曾有过这种感受，尤其是在大学这个人才密集的环境里。
+      </p>
+      <div class="science-highlight">
+        💡 小提醒：当你觉得"我不配"的时候，其实你已经站在那里了。
+      </div>
+      <button class="science-next" onclick="goNext('science1')">知道了，继续走 →</button>
+    </div>
+  </div>
+
+  <!-- ===== 路口3：绩点排名 ===== -->
+  <div class="view" id="scene3-view">
+    <div class="scene-breadcrumb">路口 03 / 06</div>
+    <h2 class="scene-title">绩点排名出来了</h2>
+    <div class="scene-card">
+      <div class="scene-text">
+        期末成绩出来了。你查到自己的排名——<br><br>
+        你的绩点 3.6，室友 3.9 已经稳拿奖学金。宿舍三个人，两个满绩。<br><br>
+        室友转头对你说："你这次也考得不错呀～" 你心里在想？
+      </div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="choose(3, 'A')">
+        <span class="choice-tag">A</span><br>
+        笑着问她哪几科学得好，借笔记看看下学期改进
+      </button>
+      <button class="choice-btn" onclick="choose(3, 'B')">
+        <span class="choice-tag">B</span><br>
+        嘴上说谢谢，回到床上翻来覆去：为什么我比不过？
+      </button>
+      <button class="choice-btn" onclick="choose(3, 'C')">
+        <span class="choice-tag">C</span><br>
+        挺好的，我这学期也有自己的进步，不用和别人比
+      </button>
+      <button class="choice-btn" onclick="choose(3, 'D')">
+        <span class="choice-tag">D</span><br>
+        下学期每门课都坐第一排，她们学多久我就学多久
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== 路口4：深夜刷朋友圈 ===== -->
+  <div class="view" id="scene4-view">
+    <div class="scene-breadcrumb">路口 04 / 06</div>
+    <h2 class="scene-title">凌晨一点的朋友圈</h2>
+    <div class="scene-card">
+      <div class="scene-text">
+        失眠了。你躺在床上刷朋友圈——<br><br>
+        同学A在<strong>欧洲交换</strong>，同学B刚发了<strong>志愿服务</strong>的照片，同学C晒出了和导师的<strong>论文署名</strong>。大家的生活看起来都闪闪发光。<br><br>
+        你看了看自己：今天好像什么都没做。
+      </div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="choose(4, 'A')">
+        <span class="choice-tag">A</span><br>
+        存下几个想去的地方和方向，明天开始查资料
+      </button>
+      <button class="choice-btn" onclick="choose(4, 'B')">
+        <span class="choice-tag">B</span><br>
+        越刷越焦虑，觉得自己的人生好苍白
+      </button>
+      <button class="choice-btn" onclick="choose(4, 'C')">
+        <span class="choice-tag">C</span><br>
+        放下手机，大家展示的都是高光时刻而已
+      </button>
+      <button class="choice-btn" onclick="choose(4, 'D')">
+        <span class="choice-tag">D</span><br>
+        立刻搜交换项目和志愿活动报名链接
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== 翻面关卡 ===== -->
+  <div class="view" id="flip-view">
+    <div class="flip-left">
+      <div class="scene-breadcrumb">路口 05 / 06 · 翻面时刻</div>
+      <h2 class="scene-title">压在小狐身上的<br>三团影子</h2>
+      <p class="flip-note">
+        三团黑影压在小狐身上，看起来张牙舞爪。<br>
+        点一下每团影子，翻面看看它的另一面。
+      </p>
+      <img class="flip-fox" src="assets/fox/fox_full.png" alt="小狐">
+    </div>
+    <div class="flip-right">
+      <div class="shadow-scene">
+        <div class="flip-container" onclick="flipShadow(this, 0)">
+          <div class="flip-inner">
+            <div class="flip-front shadow-item">
+              <div class="shadow-icon">👹</div>
+              <div class="shadow-label">室友天天泡图书馆</div>
+              <div class="shadow-sub">感觉自己好懒，比不上她</div>
+            </div>
+            <div class="flip-back shadow-item flipped">
+              <div class="shadow-icon">📖</div>
+              <div class="shadow-label">免费学习氛围组</div>
+              <div class="shadow-sub">有人一起学习，效率更高</div>
+            </div>
+          </div>
+        </div>
+        <div class="flip-container" onclick="flipShadow(this, 1)">
+          <div class="flip-inner">
+            <div class="flip-front shadow-item">
+              <div class="shadow-icon">👺</div>
+              <div class="shadow-label">同学拿了国奖</div>
+              <div class="shadow-sub">我是不是永远追不上</div>
+            </div>
+            <div class="flip-back shadow-item flipped">
+              <div class="shadow-icon">🗺️</div>
+              <div class="shadow-label">活生生的通关攻略</div>
+              <div class="shadow-sub">可以请教经验，少走弯路</div>
+            </div>
+          </div>
+        </div>
+        <div class="flip-container" onclick="flipShadow(this, 2)">
+          <div class="flip-inner">
+            <div class="flip-front shadow-item">
+              <div class="shadow-icon">😈</div>
+              <div class="shadow-label">大家都在卷实习</div>
+              <div class="shadow-sub">我是不是要被淘汰了</div>
+            </div>
+            <div class="flip-back shadow-item flipped">
+              <div class="shadow-icon">🧭</div>
+              <div class="shadow-label">多条路线参考图</div>
+              <div class="shadow-sub">看看别人的选择，再决定自己的路</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="flip-hint">视角一变，压力就会变成资源</p>
+      <button class="flip-complete-btn" id="flip-btn" onclick="completeFlip()" style="display:none">
+        走完最后一步 →
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== 路口6：冒名顶替时刻 ===== -->
+  <div class="view" id="scene6-view">
+    <div class="scene-breadcrumb">路口 06 / 06 · 最后一站</div>
+    <h2 class="scene-title">那个奖真的是我拿的吗？</h2>
+    <div class="scene-card">
+      <div class="scene-text">
+        你居然也拿到了一个<strong>校级奖学金</strong>。<br><br>
+        站在领奖台上，你心里却在打鼓：<strong>"是不是评委搞错了？我其实没那么厉害吧？下次就没我了。"</strong><br><br>
+        下台后你会怎么做？
+      </div>
+    </div>
+    <div class="choices">
+      <button class="choice-btn" onclick="choose(6, 'A')">
+        <span class="choice-tag">A</span><br>
+        把它当成认可，继续保持现在的节奏和努力
+      </button>
+      <button class="choice-btn" onclick="choose(6, 'B')">
+        <span class="choice-tag">B</span><br>
+        不敢告诉太多人，怕被发现"其实我很水"
+      </button>
+      <button class="choice-btn" onclick="choose(6, 'C')">
+        <span class="choice-tag">C</span><br>
+        开心一下就好，这只是一个阶段的小结果
+      </button>
+      <button class="choice-btn" onclick="choose(6, 'D')">
+        <span class="choice-tag">D</span><br>
+        那我得再加把劲，下次要拿更高等级的
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== 科普2：多元智能 ===== -->
+  <div class="view science-view" id="science2-view">
+    <figure class="sci-figure">
+      <img src="assets/game/fourtype.jpg" alt="四型选手">
+    </figure>
+    <div class="science-card">
+      <div class="science-tag">心理学冷知识 · 赛道不止一条</div>
+      <h3 class="science-title">多元智能理论</h3>
+      <p class="science-text">
+        哈佛心理学家加德纳提出：人的智能不是单一的"智商"，而是至少有<strong>8种不同的智能</strong>——语言、逻辑数学、空间、音乐、身体动觉、人际、内省、自然观察。
+      </p>
+      <p class="science-text">
+        这意味着：有人擅长科研，有人擅长社交，有人擅长组织协调，有人擅长动手实践。<strong>赛道本就不同，怎么能用同一把尺子衡量？</strong>
+      </p>
+      <div class="science-highlight">
+        💡 珞珈的赛场，本来就不止一条跑道。找到你擅长的那条，就是最好的路线。
+      </div>
+      <button class="science-next" onclick="showResult()">生成我的赛场档案 →</button>
+    </div>
+  </div>
+
+  <!-- ===== 结算页 ===== -->
+  <div class="view" id="result-view">
+    <aside class="result-aside">
+      <div class="result-header">
+        <div class="result-badge" id="result-badge"></div>
+        <h2 class="result-type" id="result-type"></h2>
+        <p class="result-subtitle" id="result-subtitle"></p>
+      </div>
+      <figure class="result-figure">
+        <img src="assets/game/fourtype.jpg" alt="四种选手" style="cursor:zoom-in" onclick="openPhoto('assets/game/fourtype.jpg')">
+      </figure>
+      <div class="result-cards" id="result-cards"></div>
+    </aside>
+
+    <div class="result-main">
+      <div class="result-section">
+        <h4><span class="sec-num">01</span>你的赛场坐标</h4>
+        <div class="chart-container">
+          <div class="chart-label-y">
+            <span>内耗高</span>
+            <span>内耗低</span>
+          </div>
+          <div class="chart-label-x">
+            <span>成长慢</span>
+            <span>成长快</span>
+          </div>
+          <div class="chart-axis-y"></div>
+          <div class="chart-axis-x"></div>
+          <div class="chart-quadrant" style="top: 14px; left: 46px;">高内耗 · 高成长</div>
+          <div class="chart-quadrant" style="bottom: 32px; left: 46px;">低内耗 · 高成长</div>
+          <div class="chart-point" id="chart-point"></div>
+        </div>
+      </div>
+
+      <div class="result-section">
+        <h4><span class="sec-num">02</span>你是谁</h4>
+        <p class="result-desc" id="result-desc"></p>
+      </div>
+
+      <div class="result-section">
+        <h4><span class="sec-num">03</span>小珞老师的专属锦囊</h4>
+        <ul class="tip-list" id="result-tips"></ul>
+      </div>
+
+      <div class="result-section">
+        <h4><span class="sec-num">04</span>背后的心理学</h4>
+        <div class="theory-tags" id="result-theory"></div>
+      </div>
+
+      <div class="result-actions">
+        <button class="start-btn" onclick="goToRuler()">写下我的成长标尺 →</button>
+        <span class="home-link" onclick="backHome()">回到主页</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 成长标尺页（直接在夕阳图的白纸处填写）===== -->
+  <div class="view" id="ruler-view">
+    <div class="ruler-stage">
+      <img src="assets/game/sunset.jpg" alt="我的成长赛道">
+      <textarea class="ruler-input" id="ruler-input" placeholder=""></textarea>
+      <div class="ruler-actions">
+        <button class="screenshot-btn" onclick="backToResult()">回到上一页</button>
+        <span class="home-link" onclick="backHome()">返 回</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== 游戏状态 =====
+let state = {
+  growth: 0,
+  overthink: 0,
+  choices: { A: 0, B: 0, C: 0, D: 0 },
+  flipped: [false, false, false],
+  currentStep: 1
+};
+
+const totalSteps = 6;
+
+// ===== 六关数据 =====
+const scenes = {
+  1: {
+    A: { growth: 2, overthink: 0, toast: "🌱 成长值 +2\n把别人的动态当成参考信息" },
+    B: { growth: 0, overthink: 2, toast: "💭 内耗值 +2\n把别人的进度当成了自己的及格线" },
+    C: { growth: 1, overthink: 0, toast: "🍃 松弛感 +1\n你有稳定的自我内核" },
+    D: { growth: 0, overthink: 1, toast: "🌪️ 跟风值 +1\n被焦虑推着走，还没想清楚要什么" }
+  },
+  2: {
+    A: { growth: 2, overthink: 0, toast: "🤝 成长值 +2\n向上比较变成了你的信息工具" },
+    B: { growth: 0, overthink: 2, toast: "💔 内耗值 +2\n把别人的优秀当成了对自己的否定" },
+    C: { growth: 1, overthink: 0, toast: "🌿 松弛感 +1\n课题分离做得很好" },
+    D: { growth: 0, overthink: 1, toast: "🔥 跟风值 +1\n用「加码」来缓解焦虑" }
+  },
+  3: {
+    A: { growth: 2, overthink: 0, toast: "📚 成长值 +2\n把室友当成了免费学习氛围组" },
+    B: { growth: 0, overthink: 2, toast: "🌧️ 内耗值 +2\n表面云淡风轻，心里自我否定" },
+    C: { growth: 1, overthink: 0, toast: "☀️ 松弛感 +1\n在做「垂直比较」——和昨天的自己比" },
+    D: { growth: 0, overthink: 1, toast: "⏰ 跟风值 +1\n用别人的时间表安排自己的生活" }
+  },
+  4: {
+    A: { growth: 2, overthink: 0, toast: "✨ 成长值 +2\n把别人的高光变成了自己的方向参考" },
+    B: { growth: 0, overthink: 2, toast: "🌫️ 内耗值 +2\n深夜最容易陷入向下比较的陷阱" },
+    C: { growth: 1, overthink: 0, toast: "🌙 松弛感 +1\n知道朋友圈都是高光剪辑" },
+    D: { growth: 0, overthink: 1, toast: "📋 跟风值 +1\n大晚上做的决定，往往是焦虑驱动的" }
+  },
+  6: {
+    A: { growth: 2, overthink: 0, toast: "🌟 成长值 +2\n坦然接受认可，这就是成长型思维" },
+    B: { growth: 0, overthink: 2, toast: "🎭 内耗值 +2\n冒名顶替综合征在说话了——你值得这份认可" },
+    C: { growth: 1, overthink: 0, toast: "🍵 松弛感 +1\n不卑不亢，平常心看待结果" },
+    D: { growth: 0, overthink: 1, toast: "🏃 跟风值 +1\n又在给自己加码了，小心过载" }
+  }
+};
+
+// ===== 翻面数据 =====
+const flipData = [
+  { shadowIcon: "👹", shadowLabel: "室友天天泡图书馆", shadowSub: "感觉自己好懒，比不上她", flipIcon: "📖", flipLabel: "免费学习氛围组", flipSub: "有人一起学习，效率更高" },
+  { shadowIcon: "👺", shadowLabel: "同学拿了国奖", shadowSub: "我是不是永远追不上", flipIcon: "🗺️", flipLabel: "活生生的通关攻略", flipSub: "可以请教经验，少走弯路" },
+  { shadowIcon: "😈", shadowLabel: "大家都在卷实习", shadowSub: "我是不是要被淘汰了", flipIcon: "🧭", flipLabel: "多条路线参考图", flipSub: "看看别人的选择，再决定自己的路" }
+];
+
+// ===== 结局数据 =====
+const results = {
+  growth: {
+    badge: "🌱", type: "成长型选手", subtitle: "你把同辈闪光变成了前进的灯塔",
+    desc: "你擅长把比较变成信息工具——看到别人的长处，找到可以学习的方向，获得前进的动力。你拥有成长型思维，相信能力是可以发展的，别人的优秀从来不是对你潜力的否定。",
+    tips: [
+      "继续保持这种状态，多和能给你提供能量的「同频者」做朋友",
+      "把「自我延伸」用到底：别人的光芒，都可以变成你成长的养料",
+      "注意偶尔也会有的冒名顶替感——那说明你在走出舒适区"
+    ],
+    theory: ["成长型思维", "社会比较理论", "自我延伸模型"]
+  },
+  overthink: {
+    badge: "💭", type: "内耗型选手", subtitle: "很容易在对比中把自己缩进壳里",
+    desc: "你习惯在比较中否定自我，把别人的优秀当成了对自己的审判。很多时候，不是你不够好，而是你拿了别人的地图，来找自己的路。你心里那个「我不够好」的声音，往往是冒名顶替综合征在说话。",
+    tips: [
+      "每天写下一件「今天比昨天进步」的小事，建立垂直比较",
+      "把「我不如他」换成「他这个方法我可以借鉴吗」",
+      "当焦虑来临时，试试课题分离：他的优秀是他的课题，你的节奏是你的课题"
+    ],
+    theory: ["社会比较理论", "投射效应", "冒名顶替综合征"]
+  },
+  relaxed: {
+    badge: "🍃", type: "松弛型选手", subtitle: "你有一颗稳定而强大的内核",
+    desc: "你不容易被外界节奏裹挟，知道每个人都有自己的时区。你在做「垂直比较」——和昨天的自己比，而不是和身边的人比。这是很难得的状态，也是很多人羡慕的从容。",
+    tips: [
+      "你的稳定内核是很多人羡慕的，继续保持",
+      "偶尔也抬头看看别人的路，松弛不等于停滞，也能给自己新灵感",
+      "你天然懂多元智能的道理：赛道不同，不必同尺衡量"
+    ],
+    theory: ["课题分离", "垂直比较", "多元智能理论"]
+  },
+  follower: {
+    badge: "🌪️", type: "跟风型选手", subtitle: "容易被别人的节奏带着跑",
+    desc: "看到别人做什么，就忍不住也跟着做——但很多时候，你加的群、报的班、赶的进度，并不是你真正想要的。你在用忙碌，掩盖心里的不确定。",
+    tips: [
+      "找一个安静的下午，问自己：这件事是我真正想做的吗？",
+      "试试「屏蔽力结界」：减少向上仰望，专注自己的目标",
+      "大学不是百米冲刺，是漫长的探索长跑，停下来想清楚比盲目冲更重要"
+    ],
+    theory: ["投射效应", "向上比较", "冒名顶替综合征"]
+  }
+};
+
+// ===== HUD 更新 =====
+function updateHUD() {
+  document.getElementById("growth-num").textContent = state.growth;
+  document.getElementById("overthink-num").textContent = state.overthink;
+  document.getElementById("hud-step").textContent = "第 " + state.currentStep + " 站 / 共 " + totalSteps + " 站";
+
+  const maxVal = 14;
+  document.getElementById("growth-bar").style.width = Math.min(state.growth / maxVal * 100, 100) + "%";
+  document.getElementById("overthink-bar").style.width = Math.min(state.overthink / maxVal * 100, 100) + "%";
+
+  // 左上角小狐（只保留头部）：用圈底颜色表达状态
+  const avatar = document.getElementById("hud-avatar");
+  avatar.classList.remove("glow", "fog");
+  if (state.overthink > state.growth + 1) {
+    avatar.classList.add("fog");
+  } else if (state.growth > state.overthink + 2) {
+    avatar.classList.add("glow");
+  }
+}
+
+function showToast(text) {
+  const toast = document.getElementById("toast");
+  toast.textContent = text;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2000);
+}
+
+// ===== 视图切换 =====
+function showView(id) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+
+  const hud = document.getElementById("hud");
+  if (id === "start-view" || id === "ruler-view" || id === "science1-view" || id === "science2-view") {
+    hud.classList.add("hidden");
+  } else {
+    hud.classList.remove("hidden");
+  }
+}
+
+// ===== 游戏流程 =====
+function startGame() {
+  state = {
+    growth: 0, overthink: 0,
+    choices: { A: 0, B: 0, C: 0, D: 0 },
+    flipped: [false, false, false],
+    currentStep: 1
+  };
+  // 播放开场走路动画
+  showWalk();
+}
+
+function showWalk() {
+  const walk = document.getElementById("walk-scene");
+  const video = document.getElementById("walk-video");
+  const tap = document.getElementById("walk-tap");
+  walk.classList.add("show");
+  tap.classList.remove("show");
+  // 有声音播放：开启音量（play() 发生在「开始旅程」这次用户点击里，不会被浏览器拦截）
+  video.muted = false;
+  video.volume = 1;
+  try { video.currentTime = 0; } catch (e) {}
+  const played = video.play();
+  if (played && played.catch) {
+    played.catch(function () {
+      video.muted = false;
+      tap.classList.add("show");
+    });
+  }
+  video.onended = function () { finishWalk(); };
+  // 兜底：影片若加载失败，6 秒后自动进入游戏
+  setTimeout(() => {
+    if (!walk.classList.contains("show")) return;
+    if (video.readyState === 0) finishWalk();
+  }, 6000);
+}
+
+function tapPlay() {
+  const video = document.getElementById("walk-video");
+  const tap = document.getElementById("walk-tap");
+  tap.classList.remove("show");
+  video.muted = false;
+  video.volume = 1;
+  const played = video.play();
+  if (played && played.catch) played.catch(function () {});
+}
+
+function skipWalk() {
+  const video = document.getElementById("walk-video");
+  video.pause();
+  finishWalk();
+}
+
+function finishWalk() {
+  hideWalk();
+  updateHUD();
+  document.getElementById("path-bar").classList.add("show");
+  showView("scene1-view");
+}
+
+function hideWalk() {
+  const walk = document.getElementById("walk-scene");
+  walk.classList.remove("show");
+  const video = document.getElementById("walk-video");
+  video.pause();
+}
+
+function updatePath(step) {
+  const fox = document.getElementById("path-fox");
+  const positions = [0, 16.6, 33.3, 50, 66.6, 83.3, 100];
+  fox.style.left = positions[Math.min(step, 6)] + "%";
+  const dots = document.querySelectorAll(".path-dot");
+  dots.forEach(function (d, i) {
+    d.classList.toggle("done", i < step - 1);
+  });
+}
+
+function choose(sceneNum, choice) {
+  const data = scenes[sceneNum][choice];
+  state.growth += data.growth;
+  state.overthink += data.overthink;
+  state.choices[choice]++;
+  updateHUD();
+  showToast(data.toast);
+
+  setTimeout(() => {
+    if (sceneNum === 1) {
+      state.currentStep = 2;
+      updatePath(2);
+      showView("scene2-view");
+    } else if (sceneNum === 2) {
+      state.currentStep = 2;
+      updatePath(2);
+      showView("science1-view");
+    } else if (sceneNum === 3) {
+      state.currentStep = 4;
+      updatePath(4);
+      showView("scene4-view");
+    } else if (sceneNum === 4) {
+      state.currentStep = 5;
+      updatePath(5);
+      showView("flip-view");
+    } else if (sceneNum === 6) {
+      state.currentStep = 6;
+      updatePath(6);
+      showView("science2-view");
+    }
+    updateHUD();
+  }, 1000);
+}
+
+function goNext(from) {
+  if (from === "science1") {
+    state.currentStep = 3;
+    updatePath(3);
+    showView("scene3-view");
+  }
+  updateHUD();
+}
+
+// ===== 翻面关卡 =====
+function flipShadow(el, idx) {
+  if (state.flipped[idx]) return;
+  state.flipped[idx] = true;
+
+  el.classList.add("flipped");
+
+  // 翻面奖励：内耗降低，成长增加
+  state.overthink = Math.max(0, state.overthink - 1);
+  state.growth += 1;
+  updateHUD();
+  showToast("✨ 翻面成功！\n压力变成了成长资源");
+
+  if (state.flipped.every(f => f)) {
+    document.getElementById("flip-btn").style.display = "block";
+  }
+}
+
+function completeFlip() {
+  state.currentStep = 6;
+  updatePath(6);
+  updateHUD();
+  showView("scene6-view");
+}
+
+// ===== 结局判定 =====
+function getResultType() {
+  const { A, B, C, D } = state.choices;
+  const maxChoice = Math.max(A, B, C, D);
+
+  if (maxChoice === 0) {
+    return state.growth >= state.overthink ? "growth" : "overthink";
+  }
+  if (A === maxChoice) return "growth";
+  if (B === maxChoice) return "overthink";
+  if (C === maxChoice) return "relaxed";
+  return "follower";
+}
+
+// ===== 结算页配色与锦囊卡 =====
+const typeMark = { growth: "长", overthink: "耗", relaxed: "松", follower: "风" };
+const typeColor = { growth: "#6C8C4B", overthink: "#B4524A", relaxed: "#C99A34", follower: "#B9673A" };
+const typeJinang = {
+  growth: ["assets/game/jinang2.jpg", "assets/game/jinang5.jpg"],
+  overthink: ["assets/game/jinang1.jpg", "assets/game/jinang3.jpg"],
+  relaxed: ["assets/game/jinang4.jpg", "assets/game/jinang6.jpg"],
+  follower: ["assets/game/jinang3.jpg", "assets/game/jinang6.jpg"]
+};
+
+function showResult() {
+  document.getElementById("path-bar").classList.remove("show");
+  const type = getResultType();
+  const r = results[type];
+
+  const badge = document.getElementById("result-badge");
+  badge.textContent = typeMark[type];
+  badge.style.background = typeColor[type];
+  document.getElementById("result-type").textContent = r.type;
+  document.getElementById("result-type").style.color = typeColor[type];
+  document.getElementById("result-subtitle").textContent = r.subtitle;
+  document.getElementById("result-desc").textContent = r.desc;
+
+  // 锦囊
+  const tipsEl = document.getElementById("result-tips");
+  tipsEl.innerHTML = "";
+  r.tips.forEach(t => {
+    const li = document.createElement("li");
+    li.textContent = t;
+    tipsEl.appendChild(li);
+  });
+
+  // 两张可带走的锦囊卡
+  const cardsEl = document.getElementById("result-cards");
+  cardsEl.innerHTML = "";
+  const label = document.createElement("div");
+  label.className = "result-cards-label";
+  label.textContent = "带走这两张锦囊";
+  cardsEl.appendChild(label);
+  (typeJinang[type] || []).forEach(function (src, i) {
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = "锦囊卡 " + (i + 1);
+    img.style.cursor = "zoom-in";
+    img.onclick = function () { openPhoto(src); };
+    cardsEl.appendChild(img);
+  });
+
+  // 心理学标签
+  const theoryEl = document.getElementById("result-theory");
+  theoryEl.innerHTML = "";
+  (r.theory || []).forEach(t => {
+    const span = document.createElement("span");
+    span.className = "theory-tag";
+    span.textContent = t;
+    span.style.cursor = "pointer";
+    span.onclick = function () { openTheory(t); };
+    theoryEl.appendChild(span);
+  });
+
+  // 坐标系落点动画
+  setTimeout(() => {
+    const point = document.getElementById("chart-point");
+    const x = Math.min(state.growth / 14 * 100, 92);
+    const y = Math.min(state.overthink / 14 * 100, 92);
+    point.style.left = `calc(34px + (100% - 44px) * ${x / 100})`;
+    point.style.top = `calc(8px + (100% - 28px) * ${1 - y / 100})`;
+    point.style.background = typeColor[type];
+  }, 300);
+
+  showView("result-view");
+}
+
+function goToRuler() {
+  showView("ruler-view");
+}
+
+function backToResult() {
+  showView("result-view");
+}
+
+function saveRuler() {
+  const val = document.getElementById("ruler-input").value.trim();
+  if (!val) {
+    showToast("先在纸上写一句话再保存吧～");
+    return;
+  }
+  const img = new Image();
+  img.onload = function () {
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const x = canvas.width * 0.06;
+      const y = canvas.height * 0.745;
+      const w = canvas.width * 0.88;
+      const lh = canvas.height * 0.038;
+      ctx.font = `${canvas.height * 0.024}px "Kaiti SC", "STKaiti", "KaiTi", "楷体", serif`;
+      ctx.fillStyle = "#5A3A28";
+      ctx.textBaseline = "top";
+      let cy = y;
+      val.split("\n").forEach(function (line) {
+        let rest = line;
+        while (rest.length) {
+          let n = rest.length;
+          while (n > 0 && ctx.measureText(rest.slice(0, n)).width > w) n--;
+          if (n === 0) n = 1;
+          ctx.fillText(rest.slice(0, n), x, cy);
+          rest = rest.slice(n);
+          cy += lh;
+        }
+      });
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      // 直接创建临时链接下载
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = "我的成长标尺.jpg";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast("已保存！在下载文件夹里查看");
+    } catch (e) {
+      showToast("保存失败，请截图分享");
+    }
+  };
+  img.src = "assets/game/sunset.jpg";
+}
+
+function restartGame() {
+  document.getElementById("path-bar").classList.remove("show");
+  showView("start-view");
+}
+
+function backHome() {
+  // 重置游戏状态
+  state = {
+    growth: 0, overthink: 0,
+    choices: { A: 0, B: 0, C: 0, D: 0 },
+    flipped: [false, false, false],
+    currentStep: 1
+  };
+  // 翻面卡片翻回正面
+  document.querySelectorAll(".flip-container").forEach(function (c) {
+    c.classList.remove("flipped");
+  });
+  document.getElementById("flip-btn").style.display = "none";
+  // 进度条小狐回到起点
+  updatePath(0);
+  // HUD 归零
+  document.getElementById("growth-num").textContent = "0";
+  document.getElementById("overthink-num").textContent = "0";
+  document.getElementById("hud-step").textContent = "第 1 站 / 共 " + totalSteps + " 站";
+  document.getElementById("growth-bar").style.width = "0%";
+  document.getElementById("overthink-bar").style.width = "0%";
+  document.getElementById("hud-avatar").classList.remove("glow", "fog");
+  // 回到开始页
+  document.getElementById("path-bar").classList.remove("show");
+  document.getElementById("ruler-input").value = "";
+  showView("start-view");
+}
+
+function openPhoto(src) {
+  document.getElementById("photoBig").src = src;
+  document.getElementById("photoSave").href = "#";
+  document.getElementById("photoSave").style.display = "none";
+  document.querySelector(".photo-tip").textContent = "点击空白处或 × 关闭";
+  document.getElementById("photoLightbox").classList.add("show");
+}
+
+function closePhoto() {
+  document.getElementById("photoLightbox").classList.remove("show");
+}
+
+// ===== 心理学科普弹窗 =====
+const THEORY_DATA = {
+  "成长型思维": "由斯坦福心理学家卡罗尔·德韦克提出。\n相信能力、智力和性格可以通过努力、策略和学习不断发展的人，更倾向于把挫折看作「还没学会」，而不是「我不行」。\n在同辈比较中，成长型思维让你把别人的优秀当作可借鉴的路径，而不是对自己的否定。",
+  "社会比较理论": "1954 年心理学家费斯廷格提出：在缺乏客观标准时，人会通过与他人比较来评估自己。\n向上比较（和比自己强的人比）能提供动力，但也容易带来焦虑；向下比较（和处境不如自己的人比）能暂时安慰，却容易让人停滞。\n关键不在于「比不比」，而在于把比较当作信息，而不是判决书。",
+  "自我延伸模型": "人会把自己的 possessions、关系和成就看作自我的一部分。当你把「绩点、实习、别人的评价」都当成自我本身时，一次失利就等于整个人被否定。\n试着把「我做的事」和「我是谁」分开：分数只是这一阶段的记录，不是你这个人的全部。",
+  "投射效应": "我们常常把自己的想法、情绪和假设，安到别人身上。\n比如你觉得室友在炫耀，可能只是你自己心里的不安被投射了出去；你以为别人都在盯着你，其实大家大多在忙着担心自己。",
+  "冒名顶替综合征": "总觉得自己的成功是靠运气、靠包装，害怕「迟早被人看穿」。\n研究发现，越是高成就、高要求的人，越容易有这种感受。它不是事实，而是一种习惯——试着把做成过的事写下来，用证据代替自我怀疑。",
+  "课题分离": "阿德勒心理学的核心：分清「这是谁的课题」。\n别人怎么看你、别人怎么选择、别人拿什么奖，是别人的课题；你怎么安排自己的节奏、怎么回应自己的情绪，才是你的课题。\n把别人的课题背在自己身上，只会越来越累。",
+  "垂直比较": "不与横向的他人比，而是与昨天的自己比。\n今天的你比上周多问了一个问题、多坚持了一周、多照顾了自己一点——这些只有你自己知道，却是最扎实的成长刻度。",
+  "多元智能理论": "加德纳提出：智能不是单一的分数，而是语言、逻辑、空间、运动、人际、内省等多种能力的组合。\n别人在某一门课上比你高，不代表他整个人生比你强；你可能在共情、组织、创造上有他没看到的优势。",
+  "向上比较": "把自己和在某方面更强的人放在一起看。\n用得好，它是路标——「原来可以这样」；用得不好，它是鞭子——「我怎么这么差」。区分二者的关键，是你能不能在看完之后，回到自己的下一步。"
+};
+
+function openTheory(name) {
+  document.getElementById("theoryTitle").textContent = name;
+  document.getElementById("theoryBody").textContent = THEORY_DATA[name] || "（这条理论的资料正在整理中）";
+  document.getElementById("theoryLightbox").classList.add("show");
+}
+
+function closeTheory() {
+  document.getElementById("theoryLightbox").classList.remove("show");
+}
+</script>
+
+</body>
+</html>

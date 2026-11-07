@@ -1,0 +1,43 @@
+9N5UUVsUoq
+w=1221 h=1640
+max=78.1 min=0.0
+y=   0 avg=9.2
+y=  40 avg=2.7
+y=  80 avg=0.0
+y= 120 avg=0.0
+y= 160 avg=2.4
+y= 200 avg=5.8
+y= 240 avg=5.0
+y= 280 avg=5.7
+y= 320 avg=6.2
+y= 360 avg=6.4
+y= 400 avg=5.9
+y= 440 avg=9.4
+y= 480 avg=6.0
+y= 520 avg=4.3
+y= 560 avg=6.9
+y= 600 avg=4.3
+y= 640 avg=5.6
+y= 680 avg=5.9
+y= 720 avg=5.9
+y= 760 avg=8.5
+y= 800 avg=7.0
+y= 840 avg=3.9
+y= 880 avg=3.5
+y= 920 avg=3.6
+y= 960 avg=10.6
+y=1000 avg=5.9
+y=1040 avg=6.1
+y=1080 avg=6.1
+y=1120 avg=3.9
+y=1160 avg=8.2
+y=1200 avg=8.4
+y=1240 avg=4.4
+y=1280 avg=6.7
+y=1320 avg=6.2
+y=1360 avg=6.7
+y=1400 avg=9.4
+y=1440 avg=7.0
+y=1480 avg=1.1
+y=1520 avg=0.0
+y=1560 avg=0.0
